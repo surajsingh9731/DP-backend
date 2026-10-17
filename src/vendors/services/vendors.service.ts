@@ -131,6 +131,7 @@ export class VendorsService {
         const row = await this.vendorOrThrow(id);
         row.agreementStatus = "sent";
         row.agreementSentAt = new Date();
+        row.version += 1;
         await manager.save(row);
         await this.evidenceLedger.append(manager, {
           tenantId,
@@ -169,6 +170,7 @@ export class VendorsService {
         row.agreementSignedAt = new Date();
         row.agreementDocumentRef =
           dto.agreementDocumentRef ?? row.agreementDocumentRef;
+        row.version += 1;
         await manager.save(row);
         await this.evidenceLedger.append(manager, {
           tenantId,
