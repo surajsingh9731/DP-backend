@@ -1,0 +1,3 @@
+DROP SCHEMA delivery CASCADE;
+DROP SCHEMA identity CASCADE;
+DROP SCHEMA workspace CASCADE;

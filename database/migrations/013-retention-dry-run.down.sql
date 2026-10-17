@@ -1,0 +1,1 @@
+DROP TABLE workspace.retention_commands,workspace.retention_previews,workspace.retention_hold_events,workspace.retention_policy_events,workspace.retention_holds,workspace.retention_policies;

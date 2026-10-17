@@ -1,0 +1,15 @@
+ALTER TABLE workspace.organisations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workspace.organisations FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_scope ON workspace.organisations USING(id = nullif(current_setting('app.tenant_id',true),'')::uuid);
+ALTER TABLE workspace.branches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workspace.branches FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_scope ON workspace.branches USING(tenant_id = nullif(current_setting('app.tenant_id',true),'')::uuid);
+ALTER TABLE workspace.tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workspace.tasks FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_scope ON workspace.tasks USING(tenant_id = nullif(current_setting('app.tenant_id',true),'')::uuid) WITH CHECK(tenant_id = nullif(current_setting('app.tenant_id',true),'')::uuid);
+ALTER TABLE workspace.evidence ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workspace.evidence FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_scope ON workspace.evidence USING(tenant_id = nullif(current_setting('app.tenant_id',true),'')::uuid) WITH CHECK(tenant_id = nullif(current_setting('app.tenant_id',true),'')::uuid);
+ALTER TABLE workspace.outbox ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workspace.outbox FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_scope ON workspace.outbox USING(tenant_id = nullif(current_setting('app.tenant_id',true),'')::uuid) WITH CHECK(tenant_id = nullif(current_setting('app.tenant_id',true),'')::uuid);

@@ -1,0 +1,10 @@
+DROP POLICY tenant_scope ON workspace.organisations;
+ALTER TABLE workspace.organisations DISABLE ROW LEVEL SECURITY;
+DROP POLICY tenant_scope ON workspace.branches;
+ALTER TABLE workspace.branches DISABLE ROW LEVEL SECURITY;
+DROP POLICY tenant_scope ON workspace.tasks;
+ALTER TABLE workspace.tasks DISABLE ROW LEVEL SECURITY;
+DROP POLICY tenant_scope ON workspace.evidence;
+ALTER TABLE workspace.evidence DISABLE ROW LEVEL SECURITY;
+DROP POLICY tenant_scope ON workspace.outbox;
+ALTER TABLE workspace.outbox DISABLE ROW LEVEL SECURITY;

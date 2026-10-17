@@ -1,0 +1,3 @@
+ALTER TABLE workspace.outbox ADD COLUMN template_key text NOT NULL DEFAULT 'setup_task_assigned', ADD COLUMN template_version integer NOT NULL DEFAULT 1 CHECK(template_version>0), ADD COLUMN language text NOT NULL DEFAULT 'en' CHECK(language IN ('en','hi'));
+ALTER TABLE delivery.login_jobs ADD COLUMN template_key text NOT NULL DEFAULT 'login_code', ADD COLUMN template_version integer NOT NULL DEFAULT 1 CHECK(template_version>0), ADD COLUMN language text NOT NULL DEFAULT 'en' CHECK(language IN ('en','hi'));
+ALTER TABLE delivery.mailbox ADD COLUMN template_key text NOT NULL DEFAULT 'legacy_local_message', ADD COLUMN template_version integer NOT NULL DEFAULT 1 CHECK(template_version>0), ADD COLUMN language text NOT NULL DEFAULT 'en' CHECK(language IN ('en','hi'));
