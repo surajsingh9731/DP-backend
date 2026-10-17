@@ -1,0 +1,31 @@
+{
+  "code": "education",
+  "version": 1,
+  "label": { "en": "Schools & coaching centres", "hi": "स्कूल और कोचिंग सेंटर" },
+  "setupQuestions": [
+    { "key": "collectsPhotos", "label": { "en": "Do you take photos of students?", "hi": "क्या आप छात्रों की तस्वीरें लेते हैं?" }, "type": "boolean" },
+    { "key": "hasCctv", "label": { "en": "Do you have CCTV on premises?", "hi": "क्या आपके परिसर में CCTV है?" }, "type": "boolean" },
+    { "key": "providesTransport", "label": { "en": "Do you provide school transport?", "hi": "क्या आप स्कूल परिवहन प्रदान करते हैं?" }, "type": "boolean" }
+  ],
+  "dataCategories": [
+    { "code": "student_profile", "label": { "en": "Student name, age, class", "hi": "छात्र का नाम, आयु, कक्षा" }, "legalBasis": "consent", "defaultRetentionDays": 1095 },
+    { "code": "parent_contact", "label": { "en": "Parent/guardian contact details", "hi": "माता-पिता/अभिभावक संपर्क विवरण" }, "legalBasis": "consent", "defaultRetentionDays": 1095 },
+    { "code": "marks", "label": { "en": "Marks and academic records", "hi": "अंक और शैक्षणिक रिकॉर्ड" }, "legalBasis": "consent", "defaultRetentionDays": 1825 },
+    { "code": "photos", "label": { "en": "Student photographs", "hi": "छात्र की तस्वीरें" }, "legalBasis": "consent", "defaultRetentionDays": 365 },
+    { "code": "cctv", "label": { "en": "CCTV footage", "hi": "CCTV फुटेज" }, "legalBasis": "legitimate_use", "defaultRetentionDays": 30 }
+  ],
+  "noticeClauses": {
+    "en": "We collect {{categories}} to {{purposes}}. We keep this data only as long as needed and never use it to show targeted advertisements to children.",
+    "hi": "हम {{categories}} एकत्र करते हैं ताकि {{purposes}} किया जा सके। हम इस डेटा को केवल आवश्यकतानुसार समय तक रखते हैं और बच्चों को लक्षित विज्ञापन दिखाने के लिए कभी उपयोग नहीं करते।"
+  },
+  "exemptions": [
+    {
+      "appliesTo": "cctv",
+      "rule": "tracking_and_safety_only",
+      "note": { "en": "Fourth Schedule: schools may process CCTV/location data for tracking and safety only — never for behavioural profiling or targeted ads.", "hi": "चौथी अनुसूची: स्कूल CCTV/स्थान डेटा का उपयोग केवल ट्रैकिंग और सुरक्षा के लिए कर सकते हैं — व्यवहार प्रोफाइलिंग या लक्षित विज्ञापन के लिए कभी नहीं।" }
+    }
+  ],
+  "childHarmGuard": {
+    "blockedPurposes": ["targeted_advertising", "behavioural_profiling"]
+  }
+}

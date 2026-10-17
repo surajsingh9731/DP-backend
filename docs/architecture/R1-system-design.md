@@ -94,6 +94,19 @@ PostgreSQL row-level security") and acceptance criterion #9 ("one school's
 staff can never see another school's data (tested)") at the layer that's
 actually hard to get wrong by a future code change in a service.
 
+**One deliberate exception:** the `organisations` table (the tenant root
+itself) carries a `FOR SELECT USING (true)` policy, because the public
+notice/Privacy Center flow must resolve an organisation by its public slug
+with no session and no tenant context. Only identity/notice-safe columns
+belong on this table as a result — nothing sensitive is ever stored on
+`organisations` itself. Writes stay tenant-scoped (`FOR UPDATE USING (id =
+current_setting('app.tenant_id', true)::uuid)`); `INSERT` is open (`FOR
+INSERT WITH CHECK (true)`) since creating a new org during signup happens
+before any tenant context exists to check against, and an extra org row
+touches no other tenant's data — abuse there is a signup-rate-limiting
+concern, not a tenant-isolation one. Every other table keeps the strict
+`tenant_id = current_setting(...)` policy with no public-read carve-out.
+
 **Support/platform-admin cross-tenant access** (brief §"No access without
 permission") is modelled explicitly: a `support_access_grant` row
 (tenant_id, grantee_user_id, scope, expires_at, granted_by) that a request
@@ -176,6 +189,17 @@ actor_id NULL, provenance, previous_hash, event_hash, occurred_at)`.
   consent/withdrawal/rights actions, bearer-token verified sessions.
 - `/api/admin/*` — platform-admin only, `BYPASSRLS` role, sector pack
   publishing, support-access grants.
+
+## 8b. Operational note: Postgres roles are cluster-wide
+
+`sahmati_app` is a single role created by the Foundation migration's
+`ALTER ROLE ... WITH PASSWORD`. Roles live at the cluster level, not per
+database — running the migration against `sahmati_test` after
+`sahmati_local` overwrites the same role's password. Local dev and the
+test database therefore share one `DB_PASSWORD` value in `.env`/`.env.test`.
+This is fine for a single local Postgres instance; a real multi-environment
+deployment would use distinct roles per environment (or per-database
+connection limits) instead of sharing one role's credentials.
 
 ## 9. Trade-offs to revisit
 
