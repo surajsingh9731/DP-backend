@@ -148,3 +148,27 @@ export interface ConsentReceiptView {
 export interface ConsentLedgerItemView extends ConsentReceiptView {
   identifierMasked: string;
 }
+
+// ---------------------------------------------------------------------------
+// Module G — rights and grievance desk
+// ---------------------------------------------------------------------------
+
+export type RightsRequestKind = 'access' | 'correction' | 'erasure' | 'grievance' | 'nomination';
+export type RightsRequestStatus = 'requested' | 'under_review' | 'responded' | 'closed';
+
+export interface RightsRequestView {
+  id: string;
+  kind: RightsRequestKind;
+  details: string;
+  status: RightsRequestStatus;
+  version: number;
+  autoAccessSummary: string | null;
+  responseText: string | null;
+  respondedAt: string | null;
+  dueAt: string;
+  submittedAt: string;
+}
+
+export interface RightsRequestAdminView extends RightsRequestView {
+  identifierMasked: string;
+}

@@ -14,6 +14,7 @@ import { NoticeVersionEntity } from "../notices/entities/notice-version.entity";
 import { PublicVerificationSessionEntity } from "../participants/entities/public-verification-session.entity";
 import { ConsentReceiptEntity } from "../consent/entities/consent-receipt.entity";
 import { WithdrawalFollowupEntity } from "../consent/entities/withdrawal-followup.entity";
+import { RightsRequestEntity } from "../rights/entities/rights-request.entity";
 
 /**
  * Every TypeORM entity in the app, explicitly. Deliberately not a glob
@@ -44,4 +45,5 @@ export const ALL_ENTITIES = [
   PublicVerificationSessionEntity,
   ConsentReceiptEntity,
   WithdrawalFollowupEntity,
+  RightsRequestEntity,
 ];
