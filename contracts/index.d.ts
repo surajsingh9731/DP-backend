@@ -1,8 +1,8 @@
 // Shared request/response shapes between dp-backend and dp-frontend.
 // Module A (account/access) — grows as later modules are rebuilt.
 
-export type MembershipRole = 'owner' | 'staff' | 'viewer';
-export type AuthChannel = 'email' | 'whatsapp';
+export type MembershipRole = "owner" | "staff" | "viewer";
+export type AuthChannel = "email" | "whatsapp";
 
 export interface ChallengeView {
   challengeId: string;
@@ -29,8 +29,8 @@ export interface ApiErrorBody {
 // Module B — data register
 // ---------------------------------------------------------------------------
 
-export type LegalBasis = 'consent' | 'legitimate_use';
-export type RegisterEntryStatus = 'draft' | 'published';
+export type LegalBasis = "consent" | "legitimate_use";
+export type RegisterEntryStatus = "draft" | "published";
 
 export interface VendorReference {
   name: string;
@@ -40,7 +40,7 @@ export interface VendorReference {
 export interface StorageReference {
   name: string;
   location: string;
-  medium: 'digital' | 'paper';
+  medium: "digital" | "paper";
 }
 
 export interface RegisterEntryView {
@@ -78,7 +78,7 @@ export interface RegisterContextView {
 // Module C — notice builder
 // ---------------------------------------------------------------------------
 
-export type NoticeStatus = 'draft' | 'published';
+export type NoticeStatus = "draft" | "published";
 
 export interface NoticeView {
   titleEn: string;
@@ -121,8 +121,8 @@ export interface ParticipantSessionView {
 // Modules D/F — consent capture, ledger, withdrawal
 // ---------------------------------------------------------------------------
 
-export type ConsentDecision = 'accept' | 'decline';
-export type ConsentReceiptKind = 'choices_recorded' | 'choices_withdrawn';
+export type ConsentDecision = "accept" | "decline";
+export type ConsentReceiptKind = "choices_recorded" | "choices_withdrawn";
 
 export interface ConsentOfferItem {
   registerEntryId: string;
@@ -153,8 +153,10 @@ export interface ConsentLedgerItemView extends ConsentReceiptView {
 // Module G — rights and grievance desk
 // ---------------------------------------------------------------------------
 
-export type RightsRequestKind = 'access' | 'correction' | 'erasure' | 'grievance' | 'nomination';
-export type RightsRequestStatus = 'requested' | 'under_review' | 'responded' | 'closed';
+export type RightsRequestKind =
+  "access" | "correction" | "erasure" | "grievance" | "nomination";
+export type RightsRequestStatus =
+  "requested" | "under_review" | "responded" | "closed";
 
 export interface RightsRequestView {
   id: string;
@@ -171,4 +173,29 @@ export interface RightsRequestView {
 
 export interface RightsRequestAdminView extends RightsRequestView {
   identifierMasked: string;
+}
+
+// ---------------------------------------------------------------------------
+// Module H — breach desk
+// ---------------------------------------------------------------------------
+
+export type BreachSeverity = "low" | "medium" | "high" | "critical";
+export type BreachStatus =
+  "open" | "contained" | "dpb_notified" | "principals_notified" | "closed";
+
+export interface BreachIncidentView {
+  id: string;
+  title: string;
+  description: string;
+  discoveredAt: string;
+  severity: BreachSeverity;
+  affectedDataCategories: string[];
+  affectedPrincipalsCount: number | null;
+  status: BreachStatus;
+  containmentNotes: string | null;
+  dpbNotifiedAt: string | null;
+  principalsNotifiedAt: string | null;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
 }

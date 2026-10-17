@@ -10,6 +10,7 @@ import { NoticesModule } from "./notices/notices.module";
 import { ParticipantsModule } from "./participants/participants.module";
 import { ConsentModule } from "./consent/consent.module";
 import { RightsModule } from "./rights/rights.module";
+import { BreachModule } from "./breach/breach.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { RightsModule } from "./rights/rights.module";
     ParticipantsModule,
     ConsentModule,
     RightsModule,
+    BreachModule,
   ],
 })
 export class AppModule {}

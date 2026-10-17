@@ -15,6 +15,7 @@ import { PublicVerificationSessionEntity } from "../participants/entities/public
 import { ConsentReceiptEntity } from "../consent/entities/consent-receipt.entity";
 import { WithdrawalFollowupEntity } from "../consent/entities/withdrawal-followup.entity";
 import { RightsRequestEntity } from "../rights/entities/rights-request.entity";
+import { BreachIncidentEntity } from "../breach/entities/breach-incident.entity";
 
 /**
  * Every TypeORM entity in the app, explicitly. Deliberately not a glob
@@ -46,4 +47,5 @@ export const ALL_ENTITIES = [
   ConsentReceiptEntity,
   WithdrawalFollowupEntity,
   RightsRequestEntity,
+  BreachIncidentEntity,
 ];
