@@ -4,16 +4,19 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import type { EntityManager } from "typeorm";
 import type {
   RightsRequestAdminView,
   RightsRequestView,
 } from "@sahmati/contracts";
 import { RegisterEntryEntity } from "../../register/entities/register-entry.entity";
+import { PublicVerificationSessionEntity } from "../../participants/entities/public-verification-session.entity";
 import { RightsRequestEntity } from "../entities/rights-request.entity";
 import { SubmitRightsRequestDto } from "../dto/submit-rights-request.dto";
 import { RespondRightsRequestDto } from "../dto/respond-rights-request.dto";
 import { TenantContextService } from "../../common/services/tenant-context.service";
 import { IdempotencyService } from "../../common/services/idempotency.service";
+import { MessageOutboxService } from "../../messaging/services/message-outbox.service";
 import type { AuthenticatedParticipant } from "../../common/guards/participant-session.guard";
 import type { AuthenticatedSession } from "../../common/guards/session.guard";
 
@@ -25,6 +28,7 @@ export class RightsService {
   constructor(
     private readonly tenantContext: TenantContextService,
     private readonly idempotency: IdempotencyService,
+    private readonly messageOutbox: MessageOutboxService,
   ) {}
 
   async submit(
@@ -122,9 +126,36 @@ export class RightsService {
         row.respondedAt = new Date();
         row.version += 1;
         await manager.save(row);
+        await this.notifyParticipant(manager, row);
         return { ...this.toView(row), identifierMasked: row.identifierMasked };
       },
     );
+  }
+
+  /**
+   * Queues a real notification to the participant's own identifier
+   * (resolved from their verification session, never the masked value
+   * shown to staff) for the worker process to deliver — the staff member
+   * responding should not have to wait on a live SMTP/WhatsApp round-trip.
+   * The verification session doesn't track language preference in R1, so
+   * this defaults to English; a later pass could persist it at
+   * verification time if that gap matters in practice.
+   */
+  private async notifyParticipant(
+    manager: EntityManager,
+    row: RightsRequestEntity,
+  ): Promise<void> {
+    const session = await manager
+      .getRepository(PublicVerificationSessionEntity)
+      .findOne({ where: { id: row.verificationSessionId } });
+    if (!session) return;
+    await this.messageOutbox.enqueue(manager, {
+      tenantId: row.tenantId,
+      recipient: session.identifier,
+      language: "en",
+      template: "rights_response_ready",
+      payload: { kind: row.kind, status: row.status },
+    });
   }
 
   private async buildAccessSummary(tenantId: string): Promise<string> {

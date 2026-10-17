@@ -5,11 +5,13 @@ import { RightsService } from "./services/rights.service";
 import { PublicRightsController } from "./controllers/public-rights.controller";
 import { RightsController } from "./controllers/rights.controller";
 import { ParticipantsModule } from "../participants/participants.module";
+import { MessagingModule } from "../messaging/messaging.module";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([RightsRequestEntity]),
     ParticipantsModule,
+    MessagingModule,
   ],
   controllers: [PublicRightsController, RightsController],
   providers: [RightsService],

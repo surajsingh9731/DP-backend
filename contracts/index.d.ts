@@ -230,3 +230,20 @@ export interface RetentionActionView {
   notes: string;
   executedAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Module M — messaging (outbound notification queue)
+// ---------------------------------------------------------------------------
+
+export type MessageOutboxStatus = "pending" | "sent" | "failed";
+
+export interface MessageOutboxView {
+  id: string;
+  recipient: string;
+  template: string;
+  status: MessageOutboxStatus;
+  attempts: number;
+  lastError: string | null;
+  sentAt: string | null;
+  createdAt: string;
+}

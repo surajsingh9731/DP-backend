@@ -12,6 +12,7 @@ import { ConsentModule } from "./consent/consent.module";
 import { RightsModule } from "./rights/rights.module";
 import { BreachModule } from "./breach/breach.module";
 import { RetentionModule } from "./retention/retention.module";
+import { MessagingModule } from "./messaging/messaging.module";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { RetentionModule } from "./retention/retention.module";
     RightsModule,
     BreachModule,
     RetentionModule,
+    MessagingModule,
   ],
 })
 export class AppModule {}
