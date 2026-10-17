@@ -11,6 +11,7 @@ import { ParticipantsModule } from "./participants/participants.module";
 import { ConsentModule } from "./consent/consent.module";
 import { RightsModule } from "./rights/rights.module";
 import { BreachModule } from "./breach/breach.module";
+import { RetentionModule } from "./retention/retention.module";
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { BreachModule } from "./breach/breach.module";
     ConsentModule,
     RightsModule,
     BreachModule,
+    RetentionModule,
   ],
 })
 export class AppModule {}

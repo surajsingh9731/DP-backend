@@ -199,3 +199,34 @@ export interface BreachIncidentView {
   createdAt: string;
   updatedAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Module I — retention / erasure
+// ---------------------------------------------------------------------------
+
+export type RetentionHoldStatus = "active" | "released";
+
+export interface RetentionPreviewItemView {
+  registerEntryId: string;
+  purposeEn: string;
+  categoryCode: string;
+  dueAt: string;
+  overdue: boolean;
+  onHold: boolean;
+}
+
+export interface RetentionHoldView {
+  id: string;
+  registerEntryId: string;
+  reason: string;
+  status: RetentionHoldStatus;
+  placedAt: string;
+  releasedAt: string | null;
+}
+
+export interface RetentionActionView {
+  id: string;
+  registerEntryId: string;
+  notes: string;
+  executedAt: string;
+}
