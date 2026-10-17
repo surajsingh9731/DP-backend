@@ -5,6 +5,7 @@ import {
   Index,
   PrimaryGeneratedColumn,
 } from "typeorm";
+import type { NoticePurpose } from "./notice.entity";
 
 /** Append-only snapshot of every published notice version — the proof trail for "what did the notice say on date X". */
 @Entity({ name: "notice_versions" })
@@ -30,6 +31,9 @@ export class NoticeVersionEntity {
 
   @Column({ type: "text" })
   bodyHi!: string;
+
+  @Column({ type: "jsonb", default: () => "'[]'" })
+  purposes!: NoticePurpose[];
 
   @Column({ type: "uuid" })
   publishedByUserId!: string;

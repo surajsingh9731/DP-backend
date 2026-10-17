@@ -11,6 +11,9 @@ import { RegisterEntryEntity } from "../register/entities/register-entry.entity"
 import { RegisterRevisionEntity } from "../register/entities/register-revision.entity";
 import { NoticeEntity } from "../notices/entities/notice.entity";
 import { NoticeVersionEntity } from "../notices/entities/notice-version.entity";
+import { PublicVerificationSessionEntity } from "../participants/entities/public-verification-session.entity";
+import { ConsentReceiptEntity } from "../consent/entities/consent-receipt.entity";
+import { WithdrawalFollowupEntity } from "../consent/entities/withdrawal-followup.entity";
 
 /**
  * Every TypeORM entity in the app, explicitly. Deliberately not a glob
@@ -38,4 +41,7 @@ export const ALL_ENTITIES = [
   RegisterRevisionEntity,
   NoticeEntity,
   NoticeVersionEntity,
+  PublicVerificationSessionEntity,
+  ConsentReceiptEntity,
+  WithdrawalFollowupEntity,
 ];

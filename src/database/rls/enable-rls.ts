@@ -117,3 +117,23 @@ export function operationalAccessSql(table: string): string[] {
     `CREATE POLICY ${table}_operational_access ON ${table} USING (true) WITH CHECK (true)`,
   ];
 }
+
+/**
+ * For a table a verified data principal (never a staff session) must
+ * read their own rows from — e.g. "my consent receipts", "my rights
+ * requests" — without becoming listable by anyone else. ParticipantSessionGuard
+ * sets `app.participant_session_id` the same way SessionGuard sets
+ * `app.tenant_id`; this policy OR's in exactly the rows whose own
+ * `column` (default `verification_session_id`) matches the caller's own
+ * verified session, alongside the strict `tenant_isolation` policy that
+ * still governs staff access.
+ */
+export function participantOwnRowSql(
+  table: string,
+  column = "verification_session_id",
+): string[] {
+  const predicate = `${column} = NULLIF(current_setting('app.participant_session_id', true), '')::uuid`;
+  return [
+    `CREATE POLICY ${table}_participant_own ON ${table} FOR SELECT USING (${predicate})`,
+  ];
+}

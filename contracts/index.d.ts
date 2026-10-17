@@ -100,3 +100,51 @@ export interface PublicNoticeView {
   bodyHi?: string;
   publishedAt?: string;
 }
+
+// ---------------------------------------------------------------------------
+// Shared participant (data principal) verification — no staff account, ever.
+// ---------------------------------------------------------------------------
+
+export interface ParticipantChallengeView {
+  verificationId: string;
+  channel: AuthChannel;
+  expiresAt: string;
+  maskedIdentifier: string;
+}
+
+export interface ParticipantSessionView {
+  token: string;
+  expiresAt: string;
+}
+
+// ---------------------------------------------------------------------------
+// Modules D/F — consent capture, ledger, withdrawal
+// ---------------------------------------------------------------------------
+
+export type ConsentDecision = 'accept' | 'decline';
+export type ConsentReceiptKind = 'choices_recorded' | 'choices_withdrawn';
+
+export interface ConsentOfferItem {
+  registerEntryId: string;
+  purposeEn: string;
+  purposeHi: string;
+  categoryLabel: { en: string; hi: string };
+}
+
+export interface ConsentChoiceInput {
+  registerEntryId: string;
+  decision: ConsentDecision;
+}
+
+export interface ConsentReceiptView {
+  id: string;
+  kind: ConsentReceiptKind;
+  choices: ConsentChoiceInput[];
+  receiptHash: string;
+  previousReceiptHash: string | null;
+  occurredAt: string;
+}
+
+export interface ConsentLedgerItemView extends ConsentReceiptView {
+  identifierMasked: string;
+}

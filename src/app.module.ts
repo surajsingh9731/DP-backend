@@ -7,6 +7,8 @@ import { NotificationsModule } from "./notifications/notifications.module";
 import { AuthModule } from "./auth/auth.module";
 import { RegisterModule } from "./register/register.module";
 import { NoticesModule } from "./notices/notices.module";
+import { ParticipantsModule } from "./participants/participants.module";
+import { ConsentModule } from "./consent/consent.module";
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { NoticesModule } from "./notices/notices.module";
     AuthModule,
     RegisterModule,
     NoticesModule,
+    ParticipantsModule,
+    ConsentModule,
   ],
 })
 export class AppModule {}

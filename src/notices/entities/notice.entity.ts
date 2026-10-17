@@ -9,6 +9,13 @@ import {
 
 export type NoticeStatus = "draft" | "published";
 
+export interface NoticePurpose {
+  registerEntryId: string;
+  purposeEn: string;
+  purposeHi: string;
+  categoryLabel: { en: string; hi: string };
+}
+
 /**
  * One row per tenant: the current notice (draft or published). History
  * lives in notice_versions. `status = 'published'` rows are openly
@@ -35,6 +42,10 @@ export class NoticeEntity {
 
   @Column({ type: "text" })
   bodyHi!: string;
+
+  /** The itemised, structured purpose list the public consent form reads — see the NoticePurposes migration. */
+  @Column({ type: "jsonb", default: () => "'[]'" })
+  purposes!: NoticePurpose[];
 
   @Column({ type: "text", default: "draft" })
   status!: NoticeStatus;

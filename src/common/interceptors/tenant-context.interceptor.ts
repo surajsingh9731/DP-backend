@@ -42,12 +42,14 @@ export class TenantContextInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const req = context
       .switchToHttp()
-      .getRequest<Request & { tenantId?: string }>();
+      .getRequest<
+        Request & { tenantId?: string; participantSessionId?: string }
+      >();
     return from(this.run(req, next));
   }
 
   private async run(
-    req: Request & { tenantId?: string },
+    req: Request & { tenantId?: string; participantSessionId?: string },
     next: CallHandler,
   ): Promise<unknown> {
     const queryRunner = this.dataSource.createQueryRunner();
@@ -55,16 +57,25 @@ export class TenantContextInterceptor implements NestInterceptor {
     await queryRunner.startTransaction();
     try {
       const tenantId = req.tenantId ?? null;
-      if (tenantId !== null && !UUID_RE.test(tenantId)) {
-        throw new Error(
-          "Resolved tenant id is not a UUID — refusing to interpolate it into SET LOCAL.",
-        );
+      const participantSessionId = req.participantSessionId ?? null;
+      for (const [label, value] of [
+        ["tenant id", tenantId],
+        ["participant session id", participantSessionId],
+      ] as const) {
+        if (value !== null && !UUID_RE.test(value)) {
+          throw new Error(
+            `Resolved ${label} is not a UUID — refusing to interpolate it into SET LOCAL.`,
+          );
+        }
       }
       // Always SET LOCAL explicitly, even to '' — a pooled connection that
       // was ever SET on a previous transaction resets the GUC to an empty
       // string, not a true NULL, so leaving this unset for a no-tenant
       // request would silently inherit stale state. See enable-rls.ts.
       await queryRunner.query(`SET LOCAL app.tenant_id = '${tenantId ?? ""}'`);
+      await queryRunner.query(
+        `SET LOCAL app.participant_session_id = '${participantSessionId ?? ""}'`,
+      );
       const result = await this.tenantContext.run(
         { manager: queryRunner.manager, tenantId },
         () => lastValueFrom(next.handle(), { defaultValue: undefined }),

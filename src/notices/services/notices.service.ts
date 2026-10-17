@@ -68,6 +68,12 @@ export class NoticesService {
         ];
         const purposesEn = [...new Set(entries.map((e) => e.purposeEn))];
         const purposesHi = [...new Set(entries.map((e) => e.purposeHi))];
+        const purposes = entries.map((entry) => ({
+          registerEntryId: entry.id,
+          purposeEn: entry.purposeEn,
+          purposeHi: entry.purposeHi,
+          categoryLabel: this.categoryLabel(pack, entry.categoryCode),
+        }));
 
         const bodyEn = pack.noticeClauses.en
           .replace("{{categories}}", categoriesEn.join(", "))
@@ -85,6 +91,7 @@ export class NoticesService {
           notice.titleHi = `गोपनीयता सूचना — ${organisation.name}`;
           notice.bodyEn = bodyEn;
           notice.bodyHi = bodyHi;
+          notice.purposes = purposes;
           notice.status = "published";
           notice.version += 1;
           notice.publishedAt = publishedAt;
@@ -97,6 +104,7 @@ export class NoticesService {
               titleHi: `गोपनीयता सूचना — ${organisation.name}`,
               bodyEn,
               bodyHi,
+              purposes,
               status: "published",
               version: 1,
               publishedAt,
@@ -112,6 +120,7 @@ export class NoticesService {
             titleHi: notice.titleHi,
             bodyEn: notice.bodyEn,
             bodyHi: notice.bodyHi,
+            purposes: notice.purposes,
             publishedByUserId: session.userId,
             publishedAt,
           }),
@@ -155,6 +164,41 @@ export class NoticesService {
       bodyHi: notice.bodyHi,
       publishedAt: notice.publishedAt?.toISOString(),
     };
+  }
+
+  /**
+   * The published notice's itemised purposes — what the consent form
+   * actually offers. Reads the current tenant-scoped notice (used once a
+   * tenant context is resolved, staff or verified participant alike).
+   */
+  async publishedPurposesForTenant(
+    tenantId: string,
+  ): Promise<NoticeEntity["purposes"]> {
+    const notice = await this.tenantContext.manager
+      .getRepository(NoticeEntity)
+      .findOne({ where: { tenantId, status: "published" } });
+    return notice?.purposes ?? [];
+  }
+
+  /**
+   * Same purposes list, resolved by public org slug with no tenant
+   * context at all — for showing the consent form before OTP
+   * verification. Safe for the same reason as publicNoticeBySlug: reads
+   * only ever touch the `status = 'published'` open-read rows.
+   */
+  async publicOfferBySlug(
+    slug: string,
+  ): Promise<{ available: boolean; purposes: NoticeEntity["purposes"] }> {
+    const manager = this.tenantContext.manager;
+    const organisation = await manager
+      .getRepository(OrganisationEntity)
+      .findOne({ where: { slug } });
+    if (!organisation) return { available: false, purposes: [] };
+    const notice = await manager
+      .getRepository(NoticeEntity)
+      .findOne({ where: { tenantId: organisation.id, status: "published" } });
+    if (!notice) return { available: false, purposes: [] };
+    return { available: true, purposes: notice.purposes };
   }
 
   private categoryLabel(
