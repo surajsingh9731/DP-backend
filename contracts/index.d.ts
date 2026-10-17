@@ -25,6 +25,23 @@ export interface ApiErrorBody {
   statusCode?: number;
 }
 
+/**
+ * The one response envelope every endpoint in the API uses, success or
+ * failure — a caller branches on `success` and never needs to know which
+ * module answered to know where its payload or error lives.
+ */
+export interface ApiSuccessEnvelope<T> {
+  success: true;
+  data: T;
+}
+
+export interface ApiErrorEnvelope {
+  success: false;
+  error: ApiErrorBody;
+}
+
+export type ApiEnvelope<T> = ApiSuccessEnvelope<T> | ApiErrorEnvelope;
+
 // ---------------------------------------------------------------------------
 // Module B — data register
 // ---------------------------------------------------------------------------

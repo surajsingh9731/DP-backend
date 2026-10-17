@@ -41,7 +41,7 @@ export async function signUpAndGetCookie(
   }
 
   const verifyRes = await request(app.getHttpServer())
-    .post(`/api/auth/challenges/${signupRes.body.challengeId}/verify`)
+    .post(`/api/auth/challenges/${signupRes.body.data.challengeId}/verify`)
     .set("Origin", ORIGIN)
     .send({ code: email.lastCode() });
   if (verifyRes.status !== 201) {
@@ -54,6 +54,6 @@ export async function signUpAndGetCookie(
   if (!cookie) throw new Error("No session cookie returned from verify.");
   return {
     cookie,
-    organisationId: verifyRes.body.session.organisationId as string,
+    organisationId: verifyRes.body.data.session.organisationId as string,
   };
 }

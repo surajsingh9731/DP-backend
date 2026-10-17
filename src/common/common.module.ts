@@ -10,6 +10,7 @@ import { SessionEntity } from "../auth/entities/session.entity";
 import { SessionGuard } from "./guards/session.guard";
 import { RolesGuard } from "./guards/roles.guard";
 import { TenantContextInterceptor } from "./interceptors/tenant-context.interceptor";
+import { ResponseEnvelopeInterceptor } from "./interceptors/response-envelope.interceptor";
 import { TenantContextService } from "./services/tenant-context.service";
 import { HttpExceptionFilter } from "./filters/http-exception.filter";
 import { EvidenceLedgerService } from "./services/evidence-ledger.service";
@@ -26,6 +27,7 @@ import { IdempotencyService } from "./services/idempotency.service";
     { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_INTERCEPTOR, useClass: TenantContextInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ResponseEnvelopeInterceptor },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
   exports: [TenantContextService, EvidenceLedgerService, IdempotencyService],

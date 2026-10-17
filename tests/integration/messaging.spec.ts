@@ -70,13 +70,13 @@ describe("Messaging (module M): outbox queue drained by the worker process", () 
     const before = email.sent.length;
 
     const responded = await request(app.getHttpServer())
-      .post(`/api/rights/requests/${submitted.body.id}/respond`)
+      .post(`/api/rights/requests/${submitted.body.data.id}/respond`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({
         status: "responded",
         responseText: "Fixed — thank you for flagging it.",
-        version: submitted.body.version,
+        version: submitted.body.data.version,
         idempotencyKey: "messaging-respond-1",
       });
     expect(responded.status).toBe(201);
@@ -86,10 +86,12 @@ describe("Messaging (module M): outbox queue drained by the worker process", () 
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(outboxBeforeDelivery.status).toBe(200);
-    expect(outboxBeforeDelivery.body).toHaveLength(1);
-    expect(outboxBeforeDelivery.body[0].status).toBe("pending");
-    expect(outboxBeforeDelivery.body[0].template).toBe("rights_response_ready");
-    expect(outboxBeforeDelivery.body[0].recipient).toBe(
+    expect(outboxBeforeDelivery.body.data).toHaveLength(1);
+    expect(outboxBeforeDelivery.body.data[0].status).toBe("pending");
+    expect(outboxBeforeDelivery.body.data[0].template).toBe(
+      "rights_response_ready",
+    );
+    expect(outboxBeforeDelivery.body.data[0].recipient).toBe(
       "parent-messaging@family.test",
     );
 
@@ -106,7 +108,9 @@ describe("Messaging (module M): outbox queue drained by the worker process", () 
     // counts that other tenants' traffic could shift.
     expect(processed).toBeGreaterThanOrEqual(1);
     const delivered = email.sent.find(
-      (m) => m.to === "parent-messaging@family.test" && m.template === "rights_response_ready",
+      (m) =>
+        m.to === "parent-messaging@family.test" &&
+        m.template === "rights_response_ready",
     );
     expect(delivered).toBeDefined();
 
@@ -114,7 +118,7 @@ describe("Messaging (module M): outbox queue drained by the worker process", () 
       .get("/api/messages/outbox")
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
-    expect(outboxAfterDelivery.body[0].status).toBe("sent");
-    expect(outboxAfterDelivery.body[0].sentAt).not.toBeNull();
+    expect(outboxAfterDelivery.body.data[0].status).toBe("sent");
+    expect(outboxAfterDelivery.body.data[0].sentAt).not.toBeNull();
   });
 });

@@ -61,25 +61,25 @@ describe("Breach desk (module H): incident intake, containment, DPDP-mandated no
         idempotencyKey: "breach-report-1",
       });
     expect(reported.status).toBe(201);
-    expect(reported.body.status).toBe("open");
-    expect(reported.body.version).toBe(1);
+    expect(reported.body.data.status).toBe("open");
+    expect(reported.body.data.version).toBe(1);
 
     const contained = await request(app.getHttpServer())
-      .post(`/api/breach/incidents/${reported.body.id}/events`)
+      .post(`/api/breach/incidents/${reported.body.data.id}/events`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({
         eventType: "contained",
         notes: "Laptop was remotely wiped; device recovered by police.",
-        version: reported.body.version,
+        version: reported.body.data.version,
         idempotencyKey: "breach-contain-1",
       });
     expect(contained.status).toBe(201);
-    expect(contained.body.status).toBe("contained");
-    expect(contained.body.containmentNotes).toContain("remotely wiped");
+    expect(contained.body.data.status).toBe("contained");
+    expect(contained.body.data.containmentNotes).toContain("remotely wiped");
 
     const staleEvent = await request(app.getHttpServer())
-      .post(`/api/breach/incidents/${reported.body.id}/events`)
+      .post(`/api/breach/incidents/${reported.body.data.id}/events`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({
@@ -90,49 +90,49 @@ describe("Breach desk (module H): incident intake, containment, DPDP-mandated no
     expect(staleEvent.status).toBe(409);
 
     const dpbNotified = await request(app.getHttpServer())
-      .post(`/api/breach/incidents/${reported.body.id}/events`)
+      .post(`/api/breach/incidents/${reported.body.data.id}/events`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({
         eventType: "dpb_notified",
-        version: contained.body.version,
+        version: contained.body.data.version,
         idempotencyKey: "breach-dpb-1",
       });
     expect(dpbNotified.status).toBe(201);
-    expect(dpbNotified.body.status).toBe("dpb_notified");
-    expect(dpbNotified.body.dpbNotifiedAt).not.toBeNull();
+    expect(dpbNotified.body.data.status).toBe("dpb_notified");
+    expect(dpbNotified.body.data.dpbNotifiedAt).not.toBeNull();
 
     const principalsNotified = await request(app.getHttpServer())
-      .post(`/api/breach/incidents/${reported.body.id}/events`)
+      .post(`/api/breach/incidents/${reported.body.data.id}/events`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({
         eventType: "principals_notified",
-        version: dpbNotified.body.version,
+        version: dpbNotified.body.data.version,
         idempotencyKey: "breach-principals-1",
       });
     expect(principalsNotified.status).toBe(201);
-    expect(principalsNotified.body.principalsNotifiedAt).not.toBeNull();
+    expect(principalsNotified.body.data.principalsNotifiedAt).not.toBeNull();
 
     const closed = await request(app.getHttpServer())
-      .post(`/api/breach/incidents/${reported.body.id}/events`)
+      .post(`/api/breach/incidents/${reported.body.data.id}/events`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({
         eventType: "closed",
-        version: principalsNotified.body.version,
+        version: principalsNotified.body.data.version,
         idempotencyKey: "breach-close-1",
       });
     expect(closed.status).toBe(201);
-    expect(closed.body.status).toBe("closed");
+    expect(closed.body.data.status).toBe("closed");
 
     const list = await request(app.getHttpServer())
       .get("/api/breach/incidents")
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(list.status).toBe(200);
-    expect(list.body).toHaveLength(1);
-    expect(list.body[0].status).toBe("closed");
+    expect(list.body.data).toHaveLength(1);
+    expect(list.body.data[0].status).toBe("closed");
   });
 
   it("isolates incidents per tenant", async () => {
@@ -161,6 +161,6 @@ describe("Breach desk (module H): incident intake, containment, DPDP-mandated no
       .set("Origin", ORIGIN)
       .set("Cookie", orgB.cookie);
     expect(listForB.status).toBe(200);
-    expect(listForB.body).toHaveLength(0);
+    expect(listForB.body.data).toHaveLength(0);
   });
 });

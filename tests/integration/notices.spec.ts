@@ -85,8 +85,8 @@ describe("Notices (module C): real notice publish + public page", () => {
       .set("Cookie", cookie)
       .send({ idempotencyKey: "publish-1" });
     expect(publishRes.status).toBe(201);
-    expect(publishRes.body.status).toBe("published");
-    expect(publishRes.body.bodyEn).toContain("Admissions and attendance");
+    expect(publishRes.body.data.status).toBe("published");
+    expect(publishRes.body.data.bodyEn).toContain("Admissions and attendance");
 
     const slug = orgName
       .toLowerCase()
@@ -96,9 +96,9 @@ describe("Notices (module C): real notice publish + public page", () => {
       `/api/public/${slug}/notice`,
     );
     expect(publicRes.status).toBe(200);
-    expect(publicRes.body.available).toBe(true);
-    expect(publicRes.body.organisationName).toBe(orgName);
-    expect(publicRes.body.bodyEn).toContain("Admissions and attendance");
+    expect(publicRes.body.data.available).toBe(true);
+    expect(publicRes.body.data.organisationName).toBe(orgName);
+    expect(publicRes.body.data.bodyEn).toContain("Admissions and attendance");
   });
 
   it("returns a generic unavailable response for an unpublished org and an unknown slug alike", async () => {
@@ -112,10 +112,12 @@ describe("Notices (module C): real notice publish + public page", () => {
       "/api/public/does-not-exist-at-all/notice",
     );
     expect(unpublished.status).toBe(200);
-    expect(unpublished.body.available).toBe(false);
+    expect(unpublished.body.data.available).toBe(false);
     expect(unknown.status).toBe(200);
-    expect(unknown.body.available).toBe(false);
-    expect(Object.keys(unpublished.body)).toEqual(Object.keys(unknown.body));
+    expect(unknown.body.data.available).toBe(false);
+    expect(Object.keys(unpublished.body.data)).toEqual(
+      Object.keys(unknown.body.data),
+    );
   });
 
   it("never serves a different organisation's draft or another tenant's notice", async () => {
@@ -137,6 +139,6 @@ describe("Notices (module C): real notice publish + public page", () => {
       .set("Origin", ORIGIN)
       .set("Cookie", orgB.cookie);
     expect(currentForB.status).toBe(200);
-    expect(currentForB.body).not.toHaveProperty("bodyEn");
+    expect(currentForB.body.data).toBeNull();
   });
 });

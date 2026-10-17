@@ -50,9 +50,9 @@ describe("Register (module B): data register against real Postgres", () => {
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(res.status).toBe(200);
-    expect(res.body.sectorPackCode).toBe("education");
+    expect(res.body.data.sectorPackCode).toBe("education");
     expect(
-      res.body.dataCategories.some(
+      res.body.data.dataCategories.some(
         (c: { code: string }) => c.code === "student_profile",
       ),
     ).toBe(true);
@@ -83,17 +83,17 @@ describe("Register (module B): data register against real Postgres", () => {
       });
 
     expect(created.status).toBe(201);
-    expect(created.body.suggestedLegalBasis).toBe("legitimate_use");
-    expect(created.body.legalBasis).toBe("consent");
-    expect(created.body.legalBasisOverridden).toBe(true);
-    expect(created.body.retentionDays).toBe(30);
+    expect(created.body.data.suggestedLegalBasis).toBe("legitimate_use");
+    expect(created.body.data.legalBasis).toBe("consent");
+    expect(created.body.data.legalBasisOverridden).toBe(true);
+    expect(created.body.data.retentionDays).toBe(30);
 
     const listRes = await request(app.getHttpServer())
       .get("/api/register")
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(listRes.status).toBe(200);
-    expect(listRes.body).toHaveLength(1);
+    expect(listRes.body.data).toHaveLength(1);
   });
 
   it("rejects a stale update with a version conflict", async () => {
@@ -116,7 +116,7 @@ describe("Register (module B): data register against real Postgres", () => {
       });
 
     const staleUpdate = await request(app.getHttpServer())
-      .put(`/api/register/${created.body.id}`)
+      .put(`/api/register/${created.body.data.id}`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({
@@ -127,13 +127,13 @@ describe("Register (module B): data register against real Postgres", () => {
         hasPaperRecords: false,
         vendorReferences: [],
         storageReferences: [],
-        version: created.body.version + 1,
+        version: created.body.data.version + 1,
         idempotencyKey: "update-photos-1",
       });
     expect(staleUpdate.status).toBe(409);
 
     const realUpdate = await request(app.getHttpServer())
-      .put(`/api/register/${created.body.id}`)
+      .put(`/api/register/${created.body.data.id}`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({
@@ -144,20 +144,20 @@ describe("Register (module B): data register against real Postgres", () => {
         hasPaperRecords: false,
         vendorReferences: [],
         storageReferences: [],
-        version: created.body.version,
+        version: created.body.data.version,
         idempotencyKey: "update-photos-2",
       });
     expect(realUpdate.status).toBe(200);
-    expect(realUpdate.body.version).toBe(2);
-    expect(realUpdate.body.purposeEn).toBe("Yearbook photos (updated)");
+    expect(realUpdate.body.data.version).toBe(2);
+    expect(realUpdate.body.data.purposeEn).toBe("Yearbook photos (updated)");
 
     const detail = await request(app.getHttpServer())
-      .get(`/api/register/${created.body.id}`)
+      .get(`/api/register/${created.body.data.id}`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(detail.status).toBe(200);
     expect(
-      detail.body.history.map((h: { action: string }) => h.action),
+      detail.body.data.history.map((h: { action: string }) => h.action),
     ).toEqual(["created", "updated"]);
   });
 
@@ -190,6 +190,6 @@ describe("Register (module B): data register against real Postgres", () => {
       .set("Origin", ORIGIN)
       .set("Cookie", orgB.cookie);
     expect(orgBList.status).toBe(200);
-    expect(orgBList.body).toHaveLength(0);
+    expect(orgBList.body.data).toHaveLength(0);
   });
 });

@@ -68,7 +68,7 @@ describe("Consent (modules D/F): real participant capture, ledger, withdrawal", 
     return {
       cookie,
       slug: slugify(orgName),
-      registerEntryId: created.body.id as string,
+      registerEntryId: created.body.data.id as string,
     };
   }
 
@@ -80,9 +80,9 @@ describe("Consent (modules D/F): real participant capture, ledger, withdrawal", 
       `/api/public/${slug}/consent/offer`,
     );
     expect(offer.status).toBe(200);
-    expect(offer.body.available).toBe(true);
-    expect(offer.body.purposes).toHaveLength(1);
-    expect(offer.body.purposes[0].registerEntryId).toBe(registerEntryId);
+    expect(offer.body.data.available).toBe(true);
+    expect(offer.body.data.purposes).toHaveLength(1);
+    expect(offer.body.data.purposes[0].registerEntryId).toBe(registerEntryId);
 
     const token = await verifyAsParticipant(
       app,
@@ -99,16 +99,16 @@ describe("Consent (modules D/F): real participant capture, ledger, withdrawal", 
         idempotencyKey: "record-1",
       });
     expect(recordRes.status).toBe(201);
-    expect(recordRes.body.kind).toBe("choices_recorded");
-    expect(recordRes.body.previousReceiptHash).toBeNull();
+    expect(recordRes.body.data.kind).toBe("choices_recorded");
+    expect(recordRes.body.data.previousReceiptHash).toBeNull();
 
     const ledger = await request(app.getHttpServer())
       .get("/api/consent/ledger")
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(ledger.status).toBe(200);
-    expect(ledger.body).toHaveLength(1);
-    expect(ledger.body[0].identifierMasked).toBe("p***@family.test");
+    expect(ledger.body.data).toHaveLength(1);
+    expect(ledger.body.data[0].identifierMasked).toBe("p***@family.test");
   });
 
   it("rejects consent to an unknown purpose", async () => {
@@ -164,19 +164,21 @@ describe("Consent (modules D/F): real participant capture, ledger, withdrawal", 
         idempotencyKey: "withdraw-1",
       });
     expect(withdrawn.status).toBe(201);
-    expect(withdrawn.body.kind).toBe("choices_withdrawn");
-    expect(withdrawn.body.previousReceiptHash).toBe(recorded.body.receiptHash);
+    expect(withdrawn.body.data.kind).toBe("choices_withdrawn");
+    expect(withdrawn.body.data.previousReceiptHash).toBe(
+      recorded.body.data.receiptHash,
+    );
 
     const followups = await request(app.getHttpServer())
       .get("/api/consent/followups")
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(followups.status).toBe(200);
-    expect(followups.body).toHaveLength(1);
-    expect(followups.body[0].receiptId).toBe(withdrawn.body.id);
+    expect(followups.body.data).toHaveLength(1);
+    expect(followups.body.data[0].receiptId).toBe(withdrawn.body.data.id);
 
     const closed = await request(app.getHttpServer())
-      .post(`/api/consent/followups/${followups.body[0].id}/close`)
+      .post(`/api/consent/followups/${followups.body.data[0].id}/close`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(closed.status).toBe(201);
@@ -185,7 +187,7 @@ describe("Consent (modules D/F): real participant capture, ledger, withdrawal", 
       .get("/api/consent/followups")
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
-    expect(afterClose.body).toHaveLength(0);
+    expect(afterClose.body.data).toHaveLength(0);
   });
 
   it("refuses a participant bearer token for a different organisation's consent form", async () => {

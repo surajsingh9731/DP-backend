@@ -59,7 +59,7 @@ describe("Auth (module A): real signup/login/verify flow", () => {
         language: "en",
       });
     expect(signupRes.status).toBe(201);
-    const { challengeId } = signupRes.body;
+    const { challengeId } = signupRes.body.data;
     const code = email.lastCode();
 
     const verifyRes = await request(app.getHttpServer())
@@ -67,10 +67,10 @@ describe("Auth (module A): real signup/login/verify flow", () => {
       .set("Origin", "http://127.0.0.1:4200")
       .send({ code });
     expect(verifyRes.status).toBe(201);
-    expect(verifyRes.body.session.organisationName).toBe(
+    expect(verifyRes.body.data.session.organisationName).toBe(
       "Bright Future Classes",
     );
-    expect(verifyRes.body.session.role).toBe("owner");
+    expect(verifyRes.body.data.session.role).toBe("owner");
     expect(verifyRes.headers["set-cookie"]?.[0]).toMatch(/sahmati_session=/u);
   });
 
@@ -85,7 +85,7 @@ describe("Auth (module A): real signup/login/verify flow", () => {
         ownerIdentifier: "owner-lockout@school.test",
         language: "en",
       });
-    const { challengeId } = signupRes.body;
+    const { challengeId } = signupRes.body.data;
 
     for (let i = 0; i < 5; i += 1) {
       const res = await request(app.getHttpServer())
@@ -100,7 +100,7 @@ describe("Auth (module A): real signup/login/verify flow", () => {
       .set("Origin", "http://127.0.0.1:4200")
       .send({ code: email.lastCode() });
     expect(lockedOut.status).toBe(401);
-    expect(lockedOut.body.message).toMatch(/too many/iu);
+    expect(lockedOut.body.error.message).toMatch(/too many/iu);
   });
 
   it("logs in a returning user via a fresh OTP challenge", async () => {
@@ -111,11 +111,11 @@ describe("Auth (module A): real signup/login/verify flow", () => {
     expect(loginRes.status).toBe(201);
 
     const verifyRes = await request(app.getHttpServer())
-      .post(`/api/auth/challenges/${loginRes.body.challengeId}/verify`)
+      .post(`/api/auth/challenges/${loginRes.body.data.challengeId}/verify`)
       .set("Origin", "http://127.0.0.1:4200")
       .send({ code: email.lastCode() });
     expect(verifyRes.status).toBe(201);
-    expect(verifyRes.body.session.organisationName).toBe(
+    expect(verifyRes.body.data.session.organisationName).toBe(
       "Bright Future Classes",
     );
   });
@@ -132,7 +132,7 @@ describe("Auth (module A): real signup/login/verify flow", () => {
         language: "en",
       });
     const verifyB = await request(app.getHttpServer())
-      .post(`/api/auth/challenges/${signupB.body.challengeId}/verify`)
+      .post(`/api/auth/challenges/${signupB.body.data.challengeId}/verify`)
       .set("Origin", "http://127.0.0.1:4200")
       .send({ code: email.lastCode() });
     const cookieB = verifyB.headers["set-cookie"][0];
@@ -142,7 +142,9 @@ describe("Auth (module A): real signup/login/verify flow", () => {
       .set("Origin", "http://127.0.0.1:4200")
       .set("Cookie", cookieB);
     expect(meB.status).toBe(200);
-    expect(meB.body.tenantId).toBe(verifyB.body.session.organisationId);
+    expect(meB.body.data.tenantId).toBe(
+      verifyB.body.data.session.organisationId,
+    );
 
     // Prove RLS itself, not just that the app happens to return the right
     // session: as the restricted runtime role, scoped to tenant B, tenant
@@ -157,11 +159,13 @@ describe("Auth (module A): real signup/login/verify flow", () => {
     await client.connect();
     try {
       await client.query("BEGIN");
-      await client.query(`SET LOCAL app.tenant_id = '${meB.body.tenantId}'`);
+      await client.query(
+        `SET LOCAL app.tenant_id = '${meB.body.data.tenantId}'`,
+      );
       const visible = await client.query("SELECT name FROM branches");
       expect(visible.rows).toEqual([{ name: "Main" }]);
       const crossTenantUpdate = await client.query(
-        `UPDATE branches SET name = 'HACKED' WHERE tenant_id <> '${meB.body.tenantId}'`,
+        `UPDATE branches SET name = 'HACKED' WHERE tenant_id <> '${meB.body.data.tenantId}'`,
       );
       expect(crossTenantUpdate.rowCount).toBe(0);
       await client.query("ROLLBACK");

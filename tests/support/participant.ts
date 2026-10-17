@@ -23,7 +23,7 @@ export async function verifyAsParticipant(
 
   const confirmRes = await request(app.getHttpServer())
     .post(
-      `/api/public/${orgSlug}/verify/${startRes.body.verificationId}/confirm`,
+      `/api/public/${orgSlug}/verify/${startRes.body.data.verificationId}/confirm`,
     )
     .set("Origin", ORIGIN)
     .send({ code: email.lastCode() });
@@ -32,7 +32,7 @@ export async function verifyAsParticipant(
       `Verification confirm failed: ${confirmRes.status} ${JSON.stringify(confirmRes.body)}`,
     );
   }
-  return confirmRes.body.token as string;
+  return confirmRes.body.data.token as string;
 }
 
 export function slugify(name: string): string {

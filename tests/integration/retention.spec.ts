@@ -83,7 +83,7 @@ describe("Retention and erasure (module I): dry-run preview, holds, erasure atte
         storageReferences: [],
         idempotencyKey: `retention-entry-${Date.now()}-${Math.random()}`,
       });
-    return created.body.id as string;
+    return created.body.data.id as string;
   }
 
   it("previews an overdue entry (backdated past its retention window), lets a hold suppress it, and releasing the hold restores it", async () => {
@@ -98,7 +98,7 @@ describe("Retention and erasure (module I): dry-run preview, holds, erasure atte
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(preview.status).toBe(200);
-    const item = preview.body.find(
+    const item = preview.body.data.find(
       (x: { registerEntryId: string }) => x.registerEntryId === entryId,
     );
     expect(item).toBeDefined();
@@ -115,13 +115,13 @@ describe("Retention and erasure (module I): dry-run preview, holds, erasure atte
         idempotencyKey: "hold-1",
       });
     expect(hold.status).toBe(201);
-    expect(hold.body.status).toBe("active");
+    expect(hold.body.data.status).toBe("active");
 
     const previewWithHold = await request(app.getHttpServer())
       .get("/api/retention/preview")
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
-    const heldItem = previewWithHold.body.find(
+    const heldItem = previewWithHold.body.data.find(
       (x: { registerEntryId: string }) => x.registerEntryId === entryId,
     );
     expect(heldItem.overdue).toBe(false);
@@ -139,12 +139,12 @@ describe("Retention and erasure (module I): dry-run preview, holds, erasure atte
     expect(blockedErasure.status).toBe(400);
 
     const release = await request(app.getHttpServer())
-      .post(`/api/retention/holds/${hold.body.id}/release`)
+      .post(`/api/retention/holds/${hold.body.data.id}/release`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({ idempotencyKey: "release-1" });
     expect(release.status).toBe(201);
-    expect(release.body.status).toBe("released");
+    expect(release.body.data.status).toBe("released");
 
     const erasure = await request(app.getHttpServer())
       .post("/api/retention/erasures")
@@ -156,14 +156,14 @@ describe("Retention and erasure (module I): dry-run preview, holds, erasure atte
         idempotencyKey: "erasure-1",
       });
     expect(erasure.status).toBe(201);
-    expect(erasure.body.registerEntryId).toBe(entryId);
+    expect(erasure.body.data.registerEntryId).toBe(entryId);
 
     const previewAfterErasure = await request(app.getHttpServer())
       .get("/api/retention/preview")
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(
-      previewAfterErasure.body.find(
+      previewAfterErasure.body.data.find(
         (x: { registerEntryId: string }) => x.registerEntryId === entryId,
       ),
     ).toBeUndefined();

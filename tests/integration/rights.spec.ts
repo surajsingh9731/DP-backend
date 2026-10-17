@@ -83,8 +83,8 @@ describe("Rights and grievance desk (module G): real participant requests, staff
         idempotencyKey: "rights-access-1",
       });
     expect(submitRes.status).toBe(201);
-    expect(submitRes.body.status).toBe("requested");
-    expect(submitRes.body.autoAccessSummary).toContain(
+    expect(submitRes.body.data.status).toBe("requested");
+    expect(submitRes.body.data.autoAccessSummary).toContain(
       "Admissions and attendance",
     );
 
@@ -93,16 +93,16 @@ describe("Rights and grievance desk (module G): real participant requests, staff
       .set("Origin", ORIGIN)
       .set("Authorization", `Bearer ${token}`);
     expect(mine.status).toBe(200);
-    expect(mine.body).toHaveLength(1);
-    expect(mine.body[0].id).toBe(submitRes.body.id);
+    expect(mine.body.data).toHaveLength(1);
+    expect(mine.body.data[0].id).toBe(submitRes.body.data.id);
 
     const staffList = await request(app.getHttpServer())
       .get("/api/rights/requests")
       .set("Origin", ORIGIN)
       .set("Cookie", cookie);
     expect(staffList.status).toBe(200);
-    expect(staffList.body).toHaveLength(1);
-    expect(staffList.body[0].identifierMasked).toBe("p***@family.test");
+    expect(staffList.body.data).toHaveLength(1);
+    expect(staffList.body.data[0].identifierMasked).toBe("p***@family.test");
   });
 
   it("lets staff respond to a request with optimistic concurrency, and rejects a stale version", async () => {
@@ -127,7 +127,7 @@ describe("Rights and grievance desk (module G): real participant requests, staff
     expect(submitRes.status).toBe(201);
 
     const staleRespond = await request(app.getHttpServer())
-      .post(`/api/rights/requests/${submitRes.body.id}/respond`)
+      .post(`/api/rights/requests/${submitRes.body.data.id}/respond`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({
@@ -139,19 +139,19 @@ describe("Rights and grievance desk (module G): real participant requests, staff
     expect(staleRespond.status).toBe(409);
 
     const respond = await request(app.getHttpServer())
-      .post(`/api/rights/requests/${submitRes.body.id}/respond`)
+      .post(`/api/rights/requests/${submitRes.body.data.id}/respond`)
       .set("Origin", ORIGIN)
       .set("Cookie", cookie)
       .send({
         status: "responded",
         responseText: "Fixed, thank you.",
-        version: submitRes.body.version,
+        version: submitRes.body.data.version,
         idempotencyKey: "rights-respond-1",
       });
     expect(respond.status).toBe(201);
-    expect(respond.body.status).toBe("responded");
-    expect(respond.body.responseText).toBe("Fixed, thank you.");
-    expect(respond.body.version).toBe(submitRes.body.version + 1);
+    expect(respond.body.data.status).toBe("responded");
+    expect(respond.body.data.responseText).toBe("Fixed, thank you.");
+    expect(respond.body.data.version).toBe(submitRes.body.data.version + 1);
   });
 
   it("rejects a bearer token for a different organisation's rights desk", async () => {
@@ -185,6 +185,6 @@ describe("Rights and grievance desk (module G): real participant requests, staff
       .get("/api/rights/requests")
       .set("Origin", ORIGIN)
       .set("Cookie", orgB.cookie);
-    expect(staffListB.body).toHaveLength(0);
+    expect(staffListB.body.data).toHaveLength(0);
   });
 });

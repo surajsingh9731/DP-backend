@@ -8,7 +8,11 @@ import {
 } from "@nestjs/common";
 import type { Response } from "express";
 
-/** Normalises every error response shape and never leaks a raw stack trace or driver error to the client. */
+/**
+ * Normalises every error response into the same `{ success: false, error }`
+ * envelope ResponseEnvelopeInterceptor uses for success — never leaks a raw
+ * stack trace or driver error to the client.
+ */
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger("HttpException");
@@ -19,9 +23,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = isHttp
       ? exception.getStatus()
       : HttpStatus.INTERNAL_SERVER_ERROR;
-    const body = isHttp
+    const rawBody = isHttp
       ? exception.getResponse()
       : { message: "Something went wrong. Please try again." };
+    const normalised =
+      typeof rawBody === "string" ? { message: rawBody } : rawBody;
 
     if (!isHttp) {
       this.logger.error(
@@ -29,8 +35,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
       );
     }
 
-    response
-      .status(status)
-      .json(typeof body === "string" ? { message: body } : body);
+    response.status(status).json({
+      success: false,
+      error: { statusCode: status, ...normalised },
+    });
   }
 }
