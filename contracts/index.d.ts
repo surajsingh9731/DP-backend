@@ -73,3 +73,30 @@ export interface RegisterContextView {
     suggestedRetentionDays: number;
   }[];
 }
+
+// ---------------------------------------------------------------------------
+// Module C — notice builder
+// ---------------------------------------------------------------------------
+
+export type NoticeStatus = 'draft' | 'published';
+
+export interface NoticeView {
+  titleEn: string;
+  titleHi: string;
+  bodyEn: string;
+  bodyHi: string;
+  status: NoticeStatus;
+  version: number;
+  publishedAt: string | null;
+}
+
+/** What the public, no-login notice page returns — nothing internal, ever. */
+export interface PublicNoticeView {
+  available: boolean;
+  organisationName?: string;
+  titleEn?: string;
+  titleHi?: string;
+  bodyEn?: string;
+  bodyHi?: string;
+  publishedAt?: string;
+}

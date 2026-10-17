@@ -9,6 +9,8 @@ import { EvidenceLedgerEntryEntity } from "../common/entities/evidence-ledger-en
 import { IdempotencyKeyEntity } from "../common/entities/idempotency-key.entity";
 import { RegisterEntryEntity } from "../register/entities/register-entry.entity";
 import { RegisterRevisionEntity } from "../register/entities/register-revision.entity";
+import { NoticeEntity } from "../notices/entities/notice.entity";
+import { NoticeVersionEntity } from "../notices/entities/notice-version.entity";
 
 /**
  * Every TypeORM entity in the app, explicitly. Deliberately not a glob
@@ -34,4 +36,6 @@ export const ALL_ENTITIES = [
   IdempotencyKeyEntity,
   RegisterEntryEntity,
   RegisterRevisionEntity,
+  NoticeEntity,
+  NoticeVersionEntity,
 ];

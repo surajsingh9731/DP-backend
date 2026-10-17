@@ -6,6 +6,7 @@ import { SectorPacksModule } from "./sector-packs/sector-packs.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { AuthModule } from "./auth/auth.module";
 import { RegisterModule } from "./register/register.module";
+import { NoticesModule } from "./notices/notices.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { RegisterModule } from "./register/register.module";
     NotificationsModule,
     AuthModule,
     RegisterModule,
+    NoticesModule,
   ],
 })
 export class AppModule {}
