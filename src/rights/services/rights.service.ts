@@ -29,6 +29,7 @@ import { IdempotencyService } from "../../common/services/idempotency.service";
 import { EvidenceLedgerService } from "../../common/services/evidence-ledger.service";
 import { MembershipEntity } from "../../auth/entities/membership.entity";
 import { UserEntity } from "../../auth/entities/user.entity";
+import { MessagesService } from "../../messages/services/messages.service";
 import type { CurrentMembership } from "../../common/guards/tenant-membership.guard";
 
 @Injectable()
@@ -52,6 +53,7 @@ export class RightsService {
     private readonly notices: NoticesService,
     private readonly register: RegisterService,
     private readonly evidence: EvidenceLedgerService,
+    private readonly messages: MessagesService,
   ) {}
 
   // -- Participant-facing (own session) -------------------------------------
@@ -358,6 +360,19 @@ export class RightsService {
         }),
       );
       row.status = "responded";
+      const actor = await manager.findOne(UserEntity, {
+        where: { id: membership.userId },
+      });
+      if (actor) {
+        await this.messages.enqueue(
+          tenantId,
+          actor.email,
+          "rights_responded",
+          dto.response.language,
+          { requestId: row.id },
+          manager,
+        );
+      }
       return;
     }
     const itemActions = [

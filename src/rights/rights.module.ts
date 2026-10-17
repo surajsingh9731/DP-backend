@@ -11,6 +11,7 @@ import { ConsentSandboxModule } from "../consent-sandbox/consent-sandbox.module"
 import { NoticesModule } from "../notices/notices.module";
 import { RegisterModule } from "../register/register.module";
 import { AuthModule } from "../auth/auth.module";
+import { MessagesModule } from "../messages/messages.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AuthModule } from "../auth/auth.module";
     NoticesModule,
     RegisterModule,
     AuthModule,
+    MessagesModule,
   ],
   controllers: [RightsParticipantController, RightsAdminController],
   providers: [RightsService],

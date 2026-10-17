@@ -15,6 +15,7 @@ import { RightsModule } from "./rights/rights.module";
 import { WorkspaceModule } from "./workspace/workspace.module";
 import { EvidenceModule } from "./evidence/evidence.module";
 import { RetentionModule } from "./retention/retention.module";
+import { MessagesModule } from "./messages/messages.module";
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RetentionModule } from "./retention/retention.module";
     CommonModule,
     AuthModule,
     LocalModule,
+    MessagesModule,
     WorkspaceModule,
     RegisterModule,
     SetupModule,

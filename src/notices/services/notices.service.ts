@@ -21,6 +21,8 @@ import type {
 } from "@sahmati/contracts";
 import { DataSource } from "typeorm";
 import { EvidenceLedgerService } from "../../common/services/evidence-ledger.service";
+import { MessagesService } from "../../messages/services/messages.service";
+import { UserEntity } from "../../auth/entities/user.entity";
 
 @Injectable()
 export class NoticesService {
@@ -32,6 +34,9 @@ export class NoticesService {
     private readonly pdf: NoticePdfService,
     private readonly dataSource: DataSource,
     private readonly evidence: EvidenceLedgerService,
+    private readonly messages: MessagesService,
+    @InjectRepository(UserEntity)
+    private readonly users: Repository<UserEntity>,
   ) {}
 
   async list(tenantId: string): Promise<NoticeSnapshotView[]> {
@@ -200,6 +205,19 @@ export class NoticesService {
         provenance: "recorded",
         actorId: membership.userId,
       });
+      const submitter = await manager.findOne(UserEntity, {
+        where: { id: row.submittedBy },
+      });
+      if (submitter) {
+        await this.messages.enqueue(
+          tenantId,
+          submitter.email,
+          "notice_decided",
+          row.language,
+          { noticeId: row.id, decision: dto.decision },
+          manager,
+        );
+      }
     });
     return this.toView(row);
   }

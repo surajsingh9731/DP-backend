@@ -12,6 +12,8 @@ import { WorkspaceTaskEntity } from "../entities/workspace-task.entity";
 import { WorkspaceTaskEventEntity } from "../entities/workspace-task-event.entity";
 import { IdempotencyService } from "../../common/services/idempotency.service";
 import { TenantEntity } from "../../auth/entities/tenant.entity";
+import { UserEntity } from "../../auth/entities/user.entity";
+import { MessagesService } from "../../messages/services/messages.service";
 import type { CurrentMembership } from "../../common/guards/tenant-membership.guard";
 
 @Injectable()
@@ -23,7 +25,10 @@ export class WorkspaceService {
     private readonly events: Repository<WorkspaceTaskEventEntity>,
     @InjectRepository(TenantEntity)
     private readonly tenants: Repository<TenantEntity>,
+    @InjectRepository(UserEntity)
+    private readonly users: Repository<UserEntity>,
     private readonly idempotency: IdempotencyService,
+    private readonly messages: MessagesService,
   ) {}
 
   async summary(
@@ -42,6 +47,7 @@ export class WorkspaceService {
       order: { sequence: "DESC" },
       take: 20,
     });
+    const deliveries = await this.messages.counts(tenantId);
     return {
       name: tenant.name,
       role: membership.role,
@@ -54,14 +60,14 @@ export class WorkspaceService {
         eventHash: event.eventHash,
         sequence: event.sequence,
       })),
-      // Populated once the messages/worker outbox exists; zero until then.
-      deliveries: { pending: 0, sent: 0, failed: 0 },
+      deliveries,
     };
   }
 
   async createTask(
     tenantId: string,
     idempotencyKey: string,
+    language: "en" | "hi",
     membership: CurrentMembership,
   ): Promise<TaskView> {
     if (membership.role !== "owner")
@@ -89,6 +95,20 @@ export class WorkspaceService {
               .digest("hex"),
           }),
         );
+        const actor = await this.users.findOne({
+          where: { id: membership.userId },
+        });
+        if (actor) {
+          await this.messages.enqueue(
+            tenantId,
+            actor.email,
+            "task_created",
+            language,
+            {
+              taskId: task.id,
+            },
+          );
+        }
         return this.taskView(task);
       },
     );

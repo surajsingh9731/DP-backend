@@ -26,7 +26,12 @@ export class WorkspaceController {
     @Body() dto: CreateTaskDto,
     @CurrentMembership() membership: Membership,
   ): Promise<TaskView> {
-    return this.workspace.createTask(tenantId, dto.idempotencyKey, membership);
+    return this.workspace.createTask(
+      tenantId,
+      dto.idempotencyKey,
+      dto.language,
+      membership,
+    );
   }
 
   @Post("tasks/:id/close")
