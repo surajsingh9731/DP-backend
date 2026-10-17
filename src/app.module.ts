@@ -13,6 +13,8 @@ import { FollowupsModule } from './followups/followups.module';
 import { ChecksModule } from './checks/checks.module';
 import { RightsModule } from './rights/rights.module';
 import { WorkspaceModule } from './workspace/workspace.module';
+import { EvidenceModule } from './evidence/evidence.module';
+import { RetentionModule } from './retention/retention.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { WorkspaceModule } from './workspace/workspace.module';
     FollowupsModule,
     ChecksModule,
     RightsModule,
+    EvidenceModule,
+    RetentionModule,
   ],
 })
 export class AppModule {}
