@@ -264,3 +264,19 @@ export interface MessageOutboxView {
   sentAt: string | null;
   createdAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Module L — dashboard (live readiness checks across every other module)
+// ---------------------------------------------------------------------------
+
+export type DashboardCheckStatus = "ok" | "warning" | "danger";
+
+export interface DashboardCheckView {
+  id: string;
+  title: string;
+  /** Frontend route to deep-link into the module this check came from. */
+  href: string;
+  status: DashboardCheckStatus;
+  summary: string;
+  count: number;
+}

@@ -13,6 +13,7 @@ import { RightsModule } from "./rights/rights.module";
 import { BreachModule } from "./breach/breach.module";
 import { RetentionModule } from "./retention/retention.module";
 import { MessagingModule } from "./messaging/messaging.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { MessagingModule } from "./messaging/messaging.module";
     BreachModule,
     RetentionModule,
     MessagingModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}
