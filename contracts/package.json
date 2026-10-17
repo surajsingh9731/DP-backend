@@ -1,0 +1,16 @@
+{
+  "name": "@sahmati/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared type-only contracts between the Sahmati backend and frontend. No runtime code.",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts"
+    }
+  },
+  "files": [
+    "index.d.ts",
+    "retention.d.ts"
+  ]
+}
