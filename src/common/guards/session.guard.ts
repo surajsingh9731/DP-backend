@@ -3,21 +3,21 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import type { Request } from 'express';
-import { createHash } from 'node:crypto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import type { Membership } from '@sahmati/contracts';
-import { AppConfig } from '../../config/app-config.service';
-import { SessionEntity } from '../../auth/entities/session.entity';
-import { UserEntity } from '../../auth/entities/user.entity';
-import { MembershipEntity } from '../../auth/entities/membership.entity';
-import { TenantEntity } from '../../auth/entities/tenant.entity';
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import type { Request } from "express";
+import { createHash } from "node:crypto";
+import { InjectRepository } from "@nestjs/typeorm";
+import { In, Repository } from "typeorm";
+import type { Membership } from "@sahmati/contracts";
+import { AppConfig } from "../../config/app-config.service";
+import { SessionEntity } from "../../auth/entities/session.entity";
+import { UserEntity } from "../../auth/entities/user.entity";
+import { MembershipEntity } from "../../auth/entities/membership.entity";
+import { TenantEntity } from "../../auth/entities/tenant.entity";
+import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 
-export const SESSION_COOKIE = 'sahmati_session';
+export const SESSION_COOKIE = "sahmati_session";
 
 export interface AuthenticatedSession {
   userId: string;
@@ -41,10 +41,14 @@ export class SessionGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly config: AppConfig,
-    @InjectRepository(SessionEntity) private readonly sessions: Repository<SessionEntity>,
-    @InjectRepository(UserEntity) private readonly users: Repository<UserEntity>,
-    @InjectRepository(MembershipEntity) private readonly memberships: Repository<MembershipEntity>,
-    @InjectRepository(TenantEntity) private readonly tenants: Repository<TenantEntity>,
+    @InjectRepository(SessionEntity)
+    private readonly sessions: Repository<SessionEntity>,
+    @InjectRepository(UserEntity)
+    private readonly users: Repository<UserEntity>,
+    @InjectRepository(MembershipEntity)
+    private readonly memberships: Repository<MembershipEntity>,
+    @InjectRepository(TenantEntity)
+    private readonly tenants: Repository<TenantEntity>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -57,42 +61,57 @@ export class SessionGuard implements CanActivate {
     request.authSession = session;
     if (session) return true;
     if (isPublic) return true;
-    throw new UnauthorizedException('Sign in required.');
+    throw new UnauthorizedException("Sign in required.");
   }
 
-  private async resolveSession(request: AuthenticatedRequest): Promise<AuthenticatedSession | null> {
+  private async resolveSession(
+    request: AuthenticatedRequest,
+  ): Promise<AuthenticatedSession | null> {
     const cookies = request.cookies as Record<string, string> | undefined;
     const sessionId = cookies?.[SESSION_COOKIE];
     if (!sessionId) return null;
 
     const session = await this.sessions.findOne({ where: { id: sessionId } });
-    if (!session || session.revokedAt || session.expiresAt.getTime() <= Date.now()) return null;
+    if (
+      !session ||
+      session.revokedAt ||
+      session.expiresAt.getTime() <= Date.now()
+    )
+      return null;
     if (!this.matchesToken(session, cookies![SESSION_COOKIE])) return null;
 
     const user = await this.users.findOne({ where: { id: session.userId } });
     if (!user) return null;
 
-    const memberships = await this.memberships.find({ where: { userId: user.id } });
+    const memberships = await this.memberships.find({
+      where: { userId: user.id },
+    });
     const tenantIds = memberships.map((m) => m.tenantId);
-    const tenants = tenantIds.length ? await this.tenants.findBy({ id: In(tenantIds) }) : [];
+    const tenants = tenantIds.length
+      ? await this.tenants.findBy({ id: In(tenantIds) })
+      : [];
     const tenantsById = new Map(tenants.map((t) => [t.id, t]));
     const tenantMemberships: Membership[] = memberships.map((m) => {
       const tenant = tenantsById.get(m.tenantId);
       return {
         tenantId: m.tenantId,
         role: m.role,
-        name: tenant?.name ?? '',
-        branch: tenant?.branch ?? '',
+        name: tenant?.name ?? "",
+        branch: tenant?.branch ?? "",
       };
     });
 
-    return { userId: user.id, displayName: user.displayName, memberships: tenantMemberships };
+    return {
+      userId: user.id,
+      displayName: user.displayName,
+      memberships: tenantMemberships,
+    };
   }
 
   private matchesToken(session: SessionEntity, cookieValue: string): boolean {
-    const expected = createHash('sha256')
+    const expected = createHash("sha256")
       .update(`${session.id}:${this.config.authPepper}`)
-      .digest('hex');
+      .digest("hex");
     return session.tokenHash === expected && cookieValue === session.id;
   }
 }

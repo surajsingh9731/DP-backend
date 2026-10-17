@@ -1,5 +1,5 @@
-import { IsInt, Min } from 'class-validator';
-import { RegisterDataDto } from './register-data.dto';
+import { IsInt, Min } from "class-validator";
+import { RegisterDataDto } from "./register-data.dto";
 
 export class UpdateRegisterEntryDto extends RegisterDataDto {
   @IsInt()

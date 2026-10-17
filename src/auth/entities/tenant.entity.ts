@@ -1,17 +1,22 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 
 /** A branch/organisation workspace. Everything else is scoped to one of these. */
-@Entity({ name: 'tenants' })
+@Entity({ name: "tenants" })
 export class TenantEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   name!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   branch!: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
 }

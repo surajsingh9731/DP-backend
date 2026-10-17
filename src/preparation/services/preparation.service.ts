@@ -4,22 +4,22 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { createHash } from 'node:crypto';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { createHash } from "node:crypto";
 import type {
   ContactPreparationData,
   PreparationKind,
   PreparationRecordView,
   TemplatePreparationData,
-} from '@sahmati/contracts';
-import { PreparationRecordEntity } from '../entities/preparation-record.entity';
-import { PreparationHistoryEntity } from '../entities/preparation-history.entity';
-import { SaveTemplateDto } from '../dto/save-template.dto';
-import { SaveContactDto } from '../dto/save-contact.dto';
-import { PreparationActionDto } from '../dto/preparation-action.dto';
-import type { CurrentMembership } from '../../common/guards/tenant-membership.guard';
+} from "@sahmati/contracts";
+import { PreparationRecordEntity } from "../entities/preparation-record.entity";
+import { PreparationHistoryEntity } from "../entities/preparation-history.entity";
+import { SaveTemplateDto } from "../dto/save-template.dto";
+import { SaveContactDto } from "../dto/save-contact.dto";
+import { PreparationActionDto } from "../dto/preparation-action.dto";
+import type { CurrentMembership } from "../../common/guards/tenant-membership.guard";
 
 type SaveDto = SaveTemplateDto | SaveContactDto;
 
@@ -33,13 +33,19 @@ export class PreparationService {
   ) {}
 
   async list(tenantId: string): Promise<PreparationRecordView[]> {
-    const rows = await this.records.find({ where: { tenantId }, order: { createdAt: 'ASC' } });
+    const rows = await this.records.find({
+      where: { tenantId },
+      order: { createdAt: "ASC" },
+    });
     return rows.map((row) => this.toView(row, []));
   }
 
   async get(tenantId: string, id: string): Promise<PreparationRecordView> {
     const row = await this.findOrThrow(tenantId, id);
-    const events = await this.history.find({ where: { recordId: id }, order: { version: 'ASC' } });
+    const events = await this.history.find({
+      where: { recordId: id },
+      order: { version: "ASC" },
+    });
     return this.toView(row, events);
   }
 
@@ -51,7 +57,7 @@ export class PreparationService {
     actorId: string,
   ): Promise<PreparationRecordView> {
     const data: TemplatePreparationData | ContactPreparationData =
-      kind === 'template'
+      kind === "template"
         ? {
             title: (dto as SaveTemplateDto).title,
             body: (dto as SaveTemplateDto).body,
@@ -66,26 +72,31 @@ export class PreparationService {
     let row: PreparationRecordEntity;
     if (id) {
       row = await this.findOrThrow(tenantId, id);
-      if (row.kind !== kind) throw new BadRequestException('Record kind mismatch.');
+      if (row.kind !== kind)
+        throw new BadRequestException("Record kind mismatch.");
       if (row.version !== dto.version) {
-        throw new ConflictException('Saved version changed since you last loaded it.');
+        throw new ConflictException(
+          "Saved version changed since you last loaded it.",
+        );
       }
       row.data = data;
-      row.status = 'draft';
+      row.status = "draft";
       row.version += 1;
     } else {
       row = this.records.create({
         tenantId,
         kind,
         version: 1,
-        status: 'draft',
+        status: "draft",
         data,
-        legalReviewStatus: 'unreviewed',
-        contactVerification: 'unverified',
-        contentHash: '',
-        sourcePack: kind === 'template' && (dto as SaveTemplateDto).sourceKind === 'education-sample'
-          ? { id: 'education', version: 1, reviewStatus: 'unreviewed' }
-          : null,
+        legalReviewStatus: "unreviewed",
+        contactVerification: "unverified",
+        contentHash: "",
+        sourcePack:
+          kind === "template" &&
+          (dto as SaveTemplateDto).sourceKind === "education-sample"
+            ? { id: "education", version: 1, reviewStatus: "unreviewed" }
+            : null,
       });
     }
     row.contentHash = this.hash(data);
@@ -95,11 +106,11 @@ export class PreparationService {
         recordId: row.id,
         tenantId,
         version: row.version,
-        action: 'saved',
+        action: "saved",
         status: row.status,
         data,
         contentHash: row.contentHash,
-        comment: '',
+        comment: "",
         actorId,
       }),
     );
@@ -114,25 +125,36 @@ export class PreparationService {
   ): Promise<PreparationRecordView> {
     const row = await this.findOrThrow(tenantId, id);
     if (row.version !== dto.version) {
-      throw new ConflictException('Saved version changed since you last loaded it.');
+      throw new ConflictException(
+        "Saved version changed since you last loaded it.",
+      );
     }
     const canSubmit =
-      (membership.role === 'owner' || (membership.role === 'staff' && row.kind === 'template')) &&
-      (row.status === 'draft' || row.status === 'changes_requested');
-    const canReview = membership.role === 'owner' && row.status === 'in_review';
+      (membership.role === "owner" ||
+        (membership.role === "staff" && row.kind === "template")) &&
+      (row.status === "draft" || row.status === "changes_requested");
+    const canReview = membership.role === "owner" && row.status === "in_review";
 
-    if (dto.action === 'submit') {
-      if (!canSubmit) throw new ForbiddenException('Cannot submit this record in its current state.');
-      row.status = 'in_review';
+    if (dto.action === "submit") {
+      if (!canSubmit)
+        throw new ForbiddenException(
+          "Cannot submit this record in its current state.",
+        );
+      row.status = "in_review";
     } else {
-      if (!canReview) throw new ForbiddenException('Only an owner can review a record in review.');
-      if (dto.action === 'review_internal') {
+      if (!canReview)
+        throw new ForbiddenException(
+          "Only an owner can review a record in review.",
+        );
+      if (dto.action === "review_internal") {
         if (!dto.internalOnlyAcknowledged) {
-          throw new BadRequestException('Acknowledge the internal-only review scope.');
+          throw new BadRequestException(
+            "Acknowledge the internal-only review scope.",
+          );
         }
-        row.status = 'internally_reviewed';
+        row.status = "internally_reviewed";
       } else {
-        row.status = 'changes_requested';
+        row.status = "changes_requested";
       }
     }
     row.version += 1;
@@ -146,21 +168,24 @@ export class PreparationService {
         status: row.status,
         data: row.data,
         contentHash: row.contentHash,
-        comment: dto.comment ?? '',
+        comment: dto.comment ?? "",
         actorId: membership.userId,
       }),
     );
     return this.toView(row, []);
   }
 
-  private async findOrThrow(tenantId: string, id: string): Promise<PreparationRecordEntity> {
+  private async findOrThrow(
+    tenantId: string,
+    id: string,
+  ): Promise<PreparationRecordEntity> {
     const row = await this.records.findOne({ where: { id, tenantId } });
-    if (!row) throw new NotFoundException('Preparation record not found.');
+    if (!row) throw new NotFoundException("Preparation record not found.");
     return row;
   }
 
   private hash(data: unknown): string {
-    return createHash('sha256').update(JSON.stringify(data)).digest('hex');
+    return createHash("sha256").update(JSON.stringify(data)).digest("hex");
   }
 
   private toView(

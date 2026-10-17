@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppConfigModule } from '../config/app-config.module';
-import { AppConfig } from '../config/app-config.service';
-import { SnakeCaseNamingStrategy } from './snake-case.naming-strategy';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { AppConfigModule } from "../config/app-config.module";
+import { AppConfig } from "../config/app-config.service";
+import { SnakeCaseNamingStrategy } from "./snake-case.naming-strategy";
 
 @Module({
   imports: [
@@ -11,7 +11,7 @@ import { SnakeCaseNamingStrategy } from './snake-case.naming-strategy';
       imports: [AppConfigModule],
       inject: [AppConfig],
       useFactory: (config: AppConfig) => ({
-        type: 'postgres' as const,
+        type: "postgres" as const,
         ...config.db,
         autoLoadEntities: true,
         namingStrategy: new SnakeCaseNamingStrategy(),

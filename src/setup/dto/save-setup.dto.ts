@@ -1,6 +1,13 @@
-import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
-import { RegisterDataDto } from '../../register/dto/register-data.dto';
+import { Type } from "class-transformer";
+import {
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from "class-validator";
+import { RegisterDataDto } from "../../register/dto/register-data.dto";
 
 export class SaveSetupDto {
   @IsInt()

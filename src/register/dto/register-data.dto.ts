@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type } from "class-transformer";
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -9,7 +9,7 @@ import {
   IsString,
   MaxLength,
   ValidateNested,
-} from 'class-validator';
+} from "class-validator";
 
 export class RegisterVendorReferenceDto {
   @IsString()
@@ -26,8 +26,8 @@ export class RegisterStorageReferenceDto {
   @MaxLength(100)
   name!: string;
 
-  @IsIn(['digital', 'paper'])
-  medium!: 'digital' | 'paper';
+  @IsIn(["digital", "paper"])
+  medium!: "digital" | "paper";
 
   @IsString()
   @MaxLength(200)

@@ -1,7 +1,7 @@
-import type { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Setup1700000000003 implements MigrationInterface {
-  name = 'Setup1700000000003';
+  name = "Setup1700000000003";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -21,6 +21,6 @@ export class Setup1700000000003 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS setup_records');
+    await queryRunner.query("DROP TABLE IF EXISTS setup_records");
   }
 }

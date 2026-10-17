@@ -1,12 +1,20 @@
-import { IsArray, IsBoolean, IsIn, IsInt, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsString,
+  MaxLength,
+  Min,
+} from "class-validator";
 
 export class ResolveLocationDto {
   @IsInt()
   @Min(0)
   taskVersion!: number;
 
-  @IsIn(['primary', 'digital', 'paper', 'vendor'])
-  kind!: 'primary' | 'digital' | 'paper' | 'vendor';
+  @IsIn(["primary", "digital", "paper", "vendor"])
+  kind!: "primary" | "digital" | "paper" | "vendor";
 
   @IsString()
   @MaxLength(160)

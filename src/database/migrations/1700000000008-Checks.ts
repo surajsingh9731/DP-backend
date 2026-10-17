@@ -1,7 +1,7 @@
-import type { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Checks1700000000008 implements MigrationInterface {
-  name = 'Checks1700000000008';
+  name = "Checks1700000000008";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -22,7 +22,9 @@ export class Checks1700000000008 implements MigrationInterface {
         authenticity TEXT NOT NULL DEFAULT 'not-authenticated'
       )
     `);
-    await queryRunner.query('CREATE INDEX check_reviews_task_idx ON check_reviews (task_id)');
+    await queryRunner.query(
+      "CREATE INDEX check_reviews_task_idx ON check_reviews (task_id)",
+    );
 
     await queryRunner.query(`
       CREATE TABLE check_evaluations (
@@ -38,11 +40,13 @@ export class Checks1700000000008 implements MigrationInterface {
         mode TEXT NOT NULL DEFAULT 'local-sample'
       )
     `);
-    await queryRunner.query('CREATE INDEX check_evaluations_task_idx ON check_evaluations (task_id)');
+    await queryRunner.query(
+      "CREATE INDEX check_evaluations_task_idx ON check_evaluations (task_id)",
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS check_evaluations');
-    await queryRunner.query('DROP TABLE IF EXISTS check_reviews');
+    await queryRunner.query("DROP TABLE IF EXISTS check_evaluations");
+    await queryRunner.query("DROP TABLE IF EXISTS check_reviews");
   }
 }

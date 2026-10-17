@@ -1,40 +1,46 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
-import type { RightsAction } from '@sahmati/contracts';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import type { RightsAction } from "@sahmati/contracts";
 
 /** Full immutable internal audit trail for one request, shown only to staff/owner triage. */
-@Entity({ name: 'rights_audit_events' })
-@Index(['requestId'])
+@Entity({ name: "rights_audit_events" })
+@Index(["requestId"])
 export class RightsAuditEventEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   requestId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   tenantId!: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   version!: number;
 
-  @Column({ type: 'text' })
-  action!: RightsAction | 'submitted';
+  @Column({ type: "text" })
+  action!: RightsAction | "submitted";
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   note!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   actorId!: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   at!: Date;
 
-  @Column({ type: 'jsonb', default: () => "'[]'" })
+  @Column({ type: "jsonb", default: () => "'[]'" })
   evidenceRefs!: string[];
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   previousHash!: string | null;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   eventHash!: string;
 }

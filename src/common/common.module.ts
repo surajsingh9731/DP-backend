@@ -1,12 +1,12 @@
-import { Global, Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { APP_GUARD } from '@nestjs/core';
-import { EvidenceLedgerEntryEntity } from './entities/evidence-ledger-entry.entity';
-import { IdempotencyKeyEntity } from './entities/idempotency-key.entity';
-import { EvidenceLedgerService } from './services/evidence-ledger.service';
-import { IdempotencyService } from './services/idempotency.service';
-import { SessionGuard } from './guards/session.guard';
-import { AuthModule } from '../auth/auth.module';
+import { Global, Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { APP_GUARD } from "@nestjs/core";
+import { EvidenceLedgerEntryEntity } from "./entities/evidence-ledger-entry.entity";
+import { IdempotencyKeyEntity } from "./entities/idempotency-key.entity";
+import { EvidenceLedgerService } from "./services/evidence-ledger.service";
+import { IdempotencyService } from "./services/idempotency.service";
+import { SessionGuard } from "./guards/session.guard";
+import { AuthModule } from "../auth/auth.module";
 
 /**
  * Cross-cutting providers every feature module shares: the evidence/audit
@@ -15,7 +15,10 @@ import { AuthModule } from '../auth/auth.module';
  */
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([EvidenceLedgerEntryEntity, IdempotencyKeyEntity]), AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([EvidenceLedgerEntryEntity, IdempotencyKeyEntity]),
+    AuthModule,
+  ],
   providers: [
     EvidenceLedgerService,
     IdempotencyService,

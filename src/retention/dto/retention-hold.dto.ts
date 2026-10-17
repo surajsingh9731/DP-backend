@@ -1,11 +1,19 @@
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from "class-validator";
 
 export class CreateRetentionHoldDto {
   @IsString()
   entryId!: string;
 
-  @IsIn(['activity', 'sample_record', 'location'])
-  scope!: 'activity' | 'sample_record' | 'location';
+  @IsIn(["activity", "sample_record", "location"])
+  scope!: "activity" | "sample_record" | "location";
 
   @IsOptional()
   @IsString()

@@ -1,28 +1,34 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
-import type { TaskStatus, TaskTemplate } from '@sahmati/contracts';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import type { TaskStatus, TaskTemplate } from "@sahmati/contracts";
 
 /** A simple owner-created action item shown on the workspace dashboard. */
-@Entity({ name: 'workspace_tasks' })
-@Index(['tenantId'])
+@Entity({ name: "workspace_tasks" })
+@Index(["tenantId"])
 export class WorkspaceTaskEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   tenantId!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   template!: TaskTemplate;
 
-  @Column({ type: 'text', default: 'open' })
+  @Column({ type: "text", default: "open" })
   status!: TaskStatus;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   assignee!: string | null;
 
-  @Column({ type: 'int', default: 1 })
+  @Column({ type: "int", default: 1 })
   version!: number;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
 }

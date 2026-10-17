@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import type { EntityManager } from 'typeorm';
-import { IdempotencyKeyEntity } from '../entities/idempotency-key.entity';
+import { Injectable } from "@nestjs/common";
+import type { EntityManager } from "typeorm";
+import { IdempotencyKeyEntity } from "../entities/idempotency-key.entity";
 
 /**
  * Makes a mutation safe to retry. Every state-changing endpoint in this
@@ -22,7 +22,9 @@ export class IdempotencyService {
     key: string,
     handler: () => Promise<T>,
   ): Promise<T> {
-    const existing = await manager.findOne(IdempotencyKeyEntity, { where: { tenantId, key } });
+    const existing = await manager.findOne(IdempotencyKeyEntity, {
+      where: { tenantId, key },
+    });
     if (existing) return existing.responseBody as T;
 
     const result = await handler();

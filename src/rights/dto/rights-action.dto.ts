@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type } from "class-transformer";
 import {
   IsArray,
   IsBoolean,
@@ -9,31 +9,31 @@ import {
   MaxLength,
   Min,
   ValidateNested,
-} from 'class-validator';
+} from "class-validator";
 
 const RIGHTS_ACTIONS = [
-  'assign',
-  'begin_review',
-  'declare_item',
-  'verify_item',
-  'block_item',
-  'retain_item',
-  'retry_item',
-  'respond',
-  'close',
-  'reopen',
+  "assign",
+  "begin_review",
+  "declare_item",
+  "verify_item",
+  "block_item",
+  "retain_item",
+  "retry_item",
+  "respond",
+  "close",
+  "reopen",
 ] as const;
 
 export class RightsResponseInputDto {
-  @IsIn(['en', 'hi'])
-  language!: 'en' | 'hi';
+  @IsIn(["en", "hi"])
+  language!: "en" | "hi";
 
   @IsString()
   @MaxLength(2000)
   text!: string;
 
-  @IsIn(['complete', 'partial', 'blocked'])
-  resolution!: 'complete' | 'partial' | 'blocked';
+  @IsIn(["complete", "partial", "blocked"])
+  resolution!: "complete" | "partial" | "blocked";
 
   @IsBoolean()
   reviewedResponseAcknowledged!: true;

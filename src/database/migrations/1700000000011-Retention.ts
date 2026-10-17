@@ -1,7 +1,7 @@
-import type { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Retention1700000000011 implements MigrationInterface {
-  name = 'Retention1700000000011';
+  name = "Retention1700000000011";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -20,7 +20,7 @@ export class Retention1700000000011 implements MigrationInterface {
       )
     `);
     await queryRunner.query(
-      'CREATE INDEX retention_policies_tenant_entry_idx ON retention_policies (tenant_id, entry_id)',
+      "CREATE INDEX retention_policies_tenant_entry_idx ON retention_policies (tenant_id, entry_id)",
     );
 
     await queryRunner.query(`
@@ -37,7 +37,9 @@ export class Retention1700000000011 implements MigrationInterface {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )
     `);
-    await queryRunner.query('CREATE INDEX retention_holds_tenant_entry_idx ON retention_holds (tenant_id, entry_id)');
+    await queryRunner.query(
+      "CREATE INDEX retention_holds_tenant_entry_idx ON retention_holds (tenant_id, entry_id)",
+    );
 
     await queryRunner.query(`
       CREATE TABLE retention_history (
@@ -53,7 +55,7 @@ export class Retention1700000000011 implements MigrationInterface {
       )
     `);
     await queryRunner.query(
-      'CREATE INDEX retention_history_record_idx ON retention_history (record_type, record_id)',
+      "CREATE INDEX retention_history_record_idx ON retention_history (record_type, record_id)",
     );
 
     await queryRunner.query(`
@@ -73,14 +75,14 @@ export class Retention1700000000011 implements MigrationInterface {
       )
     `);
     await queryRunner.query(
-      'CREATE INDEX retention_previews_tenant_entry_idx ON retention_previews (tenant_id, entry_id)',
+      "CREATE INDEX retention_previews_tenant_entry_idx ON retention_previews (tenant_id, entry_id)",
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS retention_previews');
-    await queryRunner.query('DROP TABLE IF EXISTS retention_history');
-    await queryRunner.query('DROP TABLE IF EXISTS retention_holds');
-    await queryRunner.query('DROP TABLE IF EXISTS retention_policies');
+    await queryRunner.query("DROP TABLE IF EXISTS retention_previews");
+    await queryRunner.query("DROP TABLE IF EXISTS retention_history");
+    await queryRunner.query("DROP TABLE IF EXISTS retention_holds");
+    await queryRunner.query("DROP TABLE IF EXISTS retention_policies");
   }
 }

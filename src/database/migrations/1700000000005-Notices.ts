@@ -1,7 +1,7 @@
-import type { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Notices1700000000005 implements MigrationInterface {
-  name = 'Notices1700000000005';
+  name = "Notices1700000000005";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -23,10 +23,12 @@ export class Notices1700000000005 implements MigrationInterface {
         preparation_source JSONB
       )
     `);
-    await queryRunner.query('CREATE INDEX notice_snapshots_tenant_idx ON notice_snapshots (tenant_id)');
+    await queryRunner.query(
+      "CREATE INDEX notice_snapshots_tenant_idx ON notice_snapshots (tenant_id)",
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS notice_snapshots');
+    await queryRunner.query("DROP TABLE IF EXISTS notice_snapshots");
   }
 }

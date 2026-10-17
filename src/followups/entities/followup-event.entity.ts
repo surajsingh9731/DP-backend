@@ -1,43 +1,49 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
-import type { FollowupAction, FollowupTask } from '@sahmati/contracts';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import type { FollowupAction, FollowupTask } from "@sahmati/contracts";
 
 /** Full immutable snapshot of a followup task as it stood after each action. */
-@Entity({ name: 'followup_events' })
-@Index(['taskId'])
+@Entity({ name: "followup_events" })
+@Index(["taskId"])
 export class FollowupEventEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   taskId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   tenantId!: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   version!: number;
 
-  @Column({ type: 'text' })
-  action!: FollowupAction | 'created';
+  @Column({ type: "text" })
+  action!: FollowupAction | "created";
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   actorId!: string;
 
-  @Column({ type: 'text', default: '' })
+  @Column({ type: "text", default: "" })
   note!: string;
 
-  @Column({ type: 'jsonb', default: () => "'[]'" })
+  @Column({ type: "jsonb", default: () => "'[]'" })
   evidenceRefs!: string[];
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   previousHash!: string | null;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   eventHash!: string;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   task!: FollowupTask;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   occurredAt!: Date;
 }

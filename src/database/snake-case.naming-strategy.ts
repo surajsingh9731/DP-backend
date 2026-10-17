@@ -1,4 +1,4 @@
-import { DefaultNamingStrategy, type NamingStrategyInterface } from 'typeorm';
+import { DefaultNamingStrategy, type NamingStrategyInterface } from "typeorm";
 
 function toSnakeCase(value: string): string {
   return value.replace(/([A-Z])/g, (letter) => `_${letter.toLowerCase()}`);
@@ -10,8 +10,14 @@ function toSnakeCase(value: string): string {
  * convention this project's own migrations already follow). This bridges
  * the two without hand-writing a `name:` override on every single column.
  */
-export class SnakeCaseNamingStrategy extends DefaultNamingStrategy implements NamingStrategyInterface {
-  override columnName(propertyName: string, customName: string | undefined): string {
+export class SnakeCaseNamingStrategy
+  extends DefaultNamingStrategy
+  implements NamingStrategyInterface
+{
+  override columnName(
+    propertyName: string,
+    customName: string | undefined,
+  ): string {
     return customName ?? toSnakeCase(propertyName);
   }
 
@@ -19,11 +25,18 @@ export class SnakeCaseNamingStrategy extends DefaultNamingStrategy implements Na
     return toSnakeCase(propertyName);
   }
 
-  override joinColumnName(relationName: string, referencedColumnName: string): string {
+  override joinColumnName(
+    relationName: string,
+    referencedColumnName: string,
+  ): string {
     return toSnakeCase(`${relationName}_${referencedColumnName}`);
   }
 
-  override joinTableColumnName(tableName: string, propertyName: string, columnName?: string): string {
+  override joinTableColumnName(
+    tableName: string,
+    propertyName: string,
+    columnName?: string,
+  ): string {
     return toSnakeCase(`${tableName}_${columnName ?? propertyName}`);
   }
 }

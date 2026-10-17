@@ -1,33 +1,39 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 
 /** Shared immutable history for both policy and hold records. */
-@Entity({ name: 'retention_history' })
-@Index(['recordType', 'recordId'])
+@Entity({ name: "retention_history" })
+@Index(["recordType", "recordId"])
 export class RetentionHistoryEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   tenantId!: string;
 
-  @Column({ type: 'text' })
-  recordType!: 'policy' | 'hold';
+  @Column({ type: "text" })
+  recordType!: "policy" | "hold";
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   recordId!: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   version!: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   action!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   reason!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   actorId!: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   at!: Date;
 }

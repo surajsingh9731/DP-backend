@@ -1,14 +1,23 @@
-import { IsArray, IsIn, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from "class-validator";
 
 const FOLLOWUP_ACTIONS = [
-  'assign',
-  'block',
-  'retry',
-  'record_request',
-  'declare_complete',
-  'retain',
-  'verify',
-  'reopen',
+  "assign",
+  "block",
+  "retry",
+  "record_request",
+  "declare_complete",
+  "retain",
+  "verify",
+  "reopen",
 ] as const;
 
 export class FollowupActionDto {
@@ -30,6 +39,9 @@ export class FollowupActionDto {
   @IsOptional()
   @IsString()
   assigneeId?: string | null;
+
+  @IsBoolean()
+  syntheticOnlyAcknowledged!: true;
 
   @IsString()
   idempotencyKey!: string;

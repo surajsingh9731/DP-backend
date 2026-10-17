@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import type {
   ConsentChoice,
   ConsentContactVerification,
@@ -8,64 +14,64 @@ import type {
   ConsentReceiptAssurance,
   ConsentReceiptKind,
   ConsentReceiptMode,
-} from '@sahmati/contracts';
+} from "@sahmati/contracts";
 
 /**
  * Append-only consent receipt. `previousReceiptHash`/`receiptHash` chain
  * every receipt for the same session — withdrawal history reads this chain
  * directly; nothing here is ever edited or deleted.
  */
-@Entity({ name: 'consent_receipts' })
-@Index(['tenantId', 'sessionId'])
+@Entity({ name: "consent_receipts" })
+@Index(["tenantId", "sessionId"])
 export class ConsentReceiptEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   tenantId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   sessionId!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   syntheticReference!: string;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   offer!: ConsentOffer;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   version!: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   kind!: ConsentReceiptKind;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   choices!: ConsentChoice[];
 
-  @Column({ type: 'text' })
-  interfaceLanguage!: 'en' | 'hi';
+  @Column({ type: "text" })
+  interfaceLanguage!: "en" | "hi";
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   occurredAt!: Date;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   previousReceiptHash!: string | null;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   receiptHash!: string;
 
-  @Column({ type: 'text', default: 'local-sample' })
+  @Column({ type: "text", default: "local-sample" })
   mode!: ConsentReceiptMode;
 
-  @Column({ type: 'text', default: 'unverified-synthetic-adult' })
+  @Column({ type: "text", default: "unverified-synthetic-adult" })
   assurance!: ConsentReceiptAssurance;
 
-  @Column({ type: 'text', default: 'unreviewed' })
+  @Column({ type: "text", default: "unreviewed" })
   legalReviewStatus!: ConsentLegalReviewStatus;
 
-  @Column({ type: 'text', default: 'unverified' })
+  @Column({ type: "text", default: "unverified" })
   contactVerification!: ConsentContactVerification;
 
-  @Column({ type: 'text', default: 'not-performed' })
+  @Column({ type: "text", default: "not-performed" })
   deletionStatus!: ConsentDeletionStatus;
 }

@@ -26,3 +26,4 @@ npm-debug.log*
 .env.local
 package-lock.json
 *.tsbuildinfo
+.env.test

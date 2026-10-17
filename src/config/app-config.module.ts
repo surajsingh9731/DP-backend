@@ -1,7 +1,7 @@
-import { Global, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { validateEnv } from './env.validation';
-import { AppConfig } from './app-config.service';
+import { Global, Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { validateEnv } from "./env.validation";
+import { AppConfig } from "./app-config.service";
 
 @Global()
 @Module({

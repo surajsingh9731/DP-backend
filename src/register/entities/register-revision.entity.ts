@@ -1,25 +1,31 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
-import type { RegisterData } from '@sahmati/contracts';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import type { RegisterData } from "@sahmati/contracts";
 
 /** Immutable snapshot of a register entry as it stood after each save. */
-@Entity({ name: 'register_revisions' })
-@Index(['entryId'])
+@Entity({ name: "register_revisions" })
+@Index(["entryId"])
 export class RegisterRevisionEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   entryId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   tenantId!: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   version!: number;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   data!: RegisterData;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
 }

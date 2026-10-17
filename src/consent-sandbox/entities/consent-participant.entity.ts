@@ -1,27 +1,27 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
 /** A single generated synthetic-adult session exercising one offer. */
-@Entity({ name: 'consent_participants' })
-@Index(['tenantId'])
+@Entity({ name: "consent_participants" })
+@Index(["tenantId"])
 export class ConsentParticipantEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   tenantId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   offerId!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   syntheticReference!: string;
 
-  @Column({ type: 'timestamptz' })
+  @Column({ type: "timestamptz" })
   expiresAt!: Date;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   version!: number;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: "boolean", default: false })
   ended!: boolean;
 }

@@ -1,5 +1,12 @@
-import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { Type } from "class-transformer";
+import {
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from "class-validator";
 
 export class NoticePreparationInputDto {
   @IsString()
@@ -23,8 +30,8 @@ export class CreateNoticeDto {
   @Min(0)
   entryVersion!: number;
 
-  @IsIn(['en', 'hi'])
-  language!: 'en' | 'hi';
+  @IsIn(["en", "hi"])
+  language!: "en" | "hi";
 
   @IsString()
   idempotencyKey!: string;

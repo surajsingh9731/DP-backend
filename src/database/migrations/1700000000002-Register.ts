@@ -1,7 +1,7 @@
-import type { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Register1700000000002 implements MigrationInterface {
-  name = 'Register1700000000002';
+  name = "Register1700000000002";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -25,7 +25,9 @@ export class Register1700000000002 implements MigrationInterface {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )
     `);
-    await queryRunner.query('CREATE INDEX register_entries_tenant_idx ON register_entries (tenant_id)');
+    await queryRunner.query(
+      "CREATE INDEX register_entries_tenant_idx ON register_entries (tenant_id)",
+    );
 
     await queryRunner.query(`
       CREATE TABLE register_revisions (
@@ -37,11 +39,13 @@ export class Register1700000000002 implements MigrationInterface {
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )
     `);
-    await queryRunner.query('CREATE INDEX register_revisions_entry_idx ON register_revisions (entry_id)');
+    await queryRunner.query(
+      "CREATE INDEX register_revisions_entry_idx ON register_revisions (entry_id)",
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS register_revisions');
-    await queryRunner.query('DROP TABLE IF EXISTS register_entries');
+    await queryRunner.query("DROP TABLE IF EXISTS register_revisions");
+    await queryRunner.query("DROP TABLE IF EXISTS register_entries");
   }
 }

@@ -1,7 +1,7 @@
-import { SetMetadata } from '@nestjs/common';
-import type { TenantRole } from '@sahmati/contracts';
+import { SetMetadata } from "@nestjs/common";
+import type { TenantRole } from "@sahmati/contracts";
 
-export const ROLES_KEY = 'roles';
+export const ROLES_KEY = "roles";
 
 /**
  * Restricts a tenant-scoped route to the given roles. Checked by

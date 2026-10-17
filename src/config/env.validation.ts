@@ -1,5 +1,14 @@
-import { plainToInstance } from 'class-transformer';
-import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, validateSync } from 'class-validator';
+import { plainToInstance } from "class-transformer";
+import {
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  validateSync,
+} from "class-validator";
 
 /**
  * Validated shape of process.env. Fails fast at boot with a readable error
@@ -42,8 +51,8 @@ class EnvironmentVariables {
   AUTH_PEPPER!: string;
 
   @IsOptional()
-  @IsIn(['local-sink'])
-  MAIL_TRANSPORT?: 'local-sink';
+  @IsIn(["local-sink"])
+  MAIL_TRANSPORT?: "local-sink";
 
   @IsOptional()
   @IsInt()
@@ -51,15 +60,20 @@ class EnvironmentVariables {
   WORKER_POLL_MS?: number;
 }
 
-export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {
+export function validateEnv(
+  config: Record<string, unknown>,
+): EnvironmentVariables {
   const validated = plainToInstance(EnvironmentVariables, config, {
     enableImplicitConversion: true,
   });
   const errors = validateSync(validated, { skipMissingProperties: false });
   if (errors.length > 0) {
     const details = errors
-      .map((error) => `${error.property}: ${Object.values(error.constraints ?? {}).join(', ')}`)
-      .join('\n  ');
+      .map(
+        (error) =>
+          `${error.property}: ${Object.values(error.constraints ?? {}).join(", ")}`,
+      )
+      .join("\n  ");
     throw new Error(`Invalid environment configuration:\n  ${details}`);
   }
   return validated;

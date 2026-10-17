@@ -1,7 +1,7 @@
-import type { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Followups1700000000007 implements MigrationInterface {
-  name = 'Followups1700000000007';
+  name = "Followups1700000000007";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -29,7 +29,9 @@ export class Followups1700000000007 implements MigrationInterface {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )
     `);
-    await queryRunner.query('CREATE INDEX followup_tasks_tenant_idx ON followup_tasks (tenant_id)');
+    await queryRunner.query(
+      "CREATE INDEX followup_tasks_tenant_idx ON followup_tasks (tenant_id)",
+    );
 
     await queryRunner.query(`
       CREATE TABLE followup_events (
@@ -47,11 +49,13 @@ export class Followups1700000000007 implements MigrationInterface {
         occurred_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )
     `);
-    await queryRunner.query('CREATE INDEX followup_events_task_idx ON followup_events (task_id)');
+    await queryRunner.query(
+      "CREATE INDEX followup_events_task_idx ON followup_events (task_id)",
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS followup_events');
-    await queryRunner.query('DROP TABLE IF EXISTS followup_tasks');
+    await queryRunner.query("DROP TABLE IF EXISTS followup_events");
+    await queryRunner.query("DROP TABLE IF EXISTS followup_tasks");
   }
 }

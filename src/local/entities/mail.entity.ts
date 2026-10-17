@@ -1,4 +1,9 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 
 /**
  * Local development mail sink. No real email is ever sent from this
@@ -6,20 +11,20 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeor
  * explicit decision); every "sent" message lands here instead, readable
  * only through /api/dev/mail.
  */
-@Entity({ name: 'local_mail' })
+@Entity({ name: "local_mail" })
 export class MailEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   recipient!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   subject!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   body!: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   deliveredAt!: Date;
 }

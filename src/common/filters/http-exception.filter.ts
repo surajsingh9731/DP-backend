@@ -5,8 +5,8 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import type { Request, Response } from 'express';
+} from "@nestjs/common";
+import type { Request, Response } from "express";
 
 interface CorrelatedRequest extends Request {
   correlationId?: string;
@@ -20,21 +20,25 @@ interface CorrelatedRequest extends Request {
  */
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger('HttpExceptionFilter');
+  private readonly logger = new Logger("HttpExceptionFilter");
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<CorrelatedRequest>();
-    const correlationId = request.correlationId ?? 'unknown';
+    const correlationId = request.correlationId ?? "unknown";
 
     const status =
-      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
-    const body = exception instanceof HttpException ? exception.getResponse() : null;
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
+    const body =
+      exception instanceof HttpException ? exception.getResponse() : null;
     const message =
-      typeof body === 'string'
+      typeof body === "string"
         ? body
-        : (body as { message?: string | string[] } | null)?.message ?? 'Internal error.';
+        : ((body as { message?: string | string[] } | null)?.message ??
+          "Internal error.");
 
     if (status >= 500) {
       this.logger.error(`[${correlationId}] ${String(exception)}`);

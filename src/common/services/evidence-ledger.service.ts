@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { createHash } from 'node:crypto';
-import type { EntityManager } from 'typeorm';
-import type { EvidenceKind, EvidenceProvenance } from '@sahmati/contracts';
-import { EvidenceLedgerEntryEntity } from '../entities/evidence-ledger-entry.entity';
+import { Injectable } from "@nestjs/common";
+import { createHash } from "node:crypto";
+import type { EntityManager } from "typeorm";
+import type { EvidenceKind, EvidenceProvenance } from "@sahmati/contracts";
+import { EvidenceLedgerEntryEntity } from "../entities/evidence-ledger-entry.entity";
 
 export interface AppendEvidenceInput {
   tenantId: string;
@@ -36,8 +36,12 @@ export class EvidenceLedgerService {
     input: AppendEvidenceInput,
   ): Promise<EvidenceLedgerEntryEntity> {
     const previous = await manager.findOne(EvidenceLedgerEntryEntity, {
-      where: { tenantId: input.tenantId, kind: input.kind, sourceId: input.sourceId },
-      order: { sequence: 'DESC' },
+      where: {
+        tenantId: input.tenantId,
+        kind: input.kind,
+        sourceId: input.sourceId,
+      },
+      order: { sequence: "DESC" },
     });
     const previousHash = previous?.eventHash ?? null;
     const canonical = JSON.stringify({
@@ -49,7 +53,7 @@ export class EvidenceLedgerService {
       status: input.status,
       detail: input.detail ?? {},
     });
-    const eventHash = createHash('sha256').update(canonical).digest('hex');
+    const eventHash = createHash("sha256").update(canonical).digest("hex");
 
     const entry = manager.create(EvidenceLedgerEntryEntity, {
       tenantId: input.tenantId,
@@ -77,7 +81,7 @@ export class EvidenceLedgerService {
   ): Promise<EvidenceLedgerEntryEntity[]> {
     return manager.find(EvidenceLedgerEntryEntity, {
       where: { tenantId, kind, sourceId },
-      order: { sequence: 'ASC' },
+      order: { sequence: "ASC" },
     });
   }
 }

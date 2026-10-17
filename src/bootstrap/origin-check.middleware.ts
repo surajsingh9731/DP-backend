@@ -1,7 +1,7 @@
-import { ForbiddenException, Logger } from '@nestjs/common';
-import type { NextFunction, Request, Response } from 'express';
+import { ForbiddenException, Logger } from "@nestjs/common";
+import type { NextFunction, Request, Response } from "express";
 
-const logger = new Logger('OriginCheck');
+const logger = new Logger("OriginCheck");
 
 /**
  * Rejects any state-changing request whose Origin header isn't the exact
@@ -12,15 +12,23 @@ const logger = new Logger('OriginCheck');
  * reads commonly omit the header); every mutating method requires it.
  */
 export function createOriginCheckMiddleware(webOrigin: string) {
-  return function originCheck(req: Request, res: Response, next: NextFunction): void {
-    if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+  return function originCheck(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): void {
+    if (
+      req.method === "GET" ||
+      req.method === "HEAD" ||
+      req.method === "OPTIONS"
+    ) {
       next();
       return;
     }
     const origin = req.headers.origin;
     if (origin && origin !== webOrigin) {
       logger.warn(`Rejected request from unexpected Origin: ${origin}`);
-      throw new ForbiddenException('Unexpected request origin.');
+      throw new ForbiddenException("Unexpected request origin.");
     }
     next();
   };

@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type } from "class-transformer";
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -7,7 +7,7 @@ import {
   IsString,
   MaxLength,
   ValidateNested,
-} from 'class-validator';
+} from "class-validator";
 
 export class ConsentPurposeDto {
   @IsString()

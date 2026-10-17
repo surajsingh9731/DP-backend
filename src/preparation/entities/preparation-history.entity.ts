@@ -1,40 +1,50 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
-import type { ContactPreparationData, PreparationStatus, TemplatePreparationData } from '@sahmati/contracts';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import type {
+  ContactPreparationData,
+  PreparationStatus,
+  TemplatePreparationData,
+} from "@sahmati/contracts";
 
 /** Immutable full snapshot of a preparation record as it stood after each save/action. */
-@Entity({ name: 'preparation_history' })
-@Index(['recordId'])
+@Entity({ name: "preparation_history" })
+@Index(["recordId"])
 export class PreparationHistoryEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   recordId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   tenantId!: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   version!: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   action!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   status!: PreparationStatus;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: "jsonb" })
   data!: TemplatePreparationData | ContactPreparationData;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   contentHash!: string;
 
-  @Column({ type: 'text', default: '' })
+  @Column({ type: "text", default: "" })
   comment!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   actorId!: string;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
 }

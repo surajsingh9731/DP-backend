@@ -1,7 +1,7 @@
-import type { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Workspace1700000000010 implements MigrationInterface {
-  name = 'Workspace1700000000010';
+  name = "Workspace1700000000010";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -15,7 +15,9 @@ export class Workspace1700000000010 implements MigrationInterface {
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )
     `);
-    await queryRunner.query('CREATE INDEX workspace_tasks_tenant_idx ON workspace_tasks (tenant_id)');
+    await queryRunner.query(
+      "CREATE INDEX workspace_tasks_tenant_idx ON workspace_tasks (tenant_id)",
+    );
 
     await queryRunner.query(`
       CREATE TABLE workspace_task_events (
@@ -29,12 +31,12 @@ export class Workspace1700000000010 implements MigrationInterface {
       )
     `);
     await queryRunner.query(
-      'CREATE INDEX workspace_task_events_tenant_idx ON workspace_task_events (tenant_id)',
+      "CREATE INDEX workspace_task_events_tenant_idx ON workspace_task_events (tenant_id)",
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS workspace_task_events');
-    await queryRunner.query('DROP TABLE IF EXISTS workspace_tasks');
+    await queryRunner.query("DROP TABLE IF EXISTS workspace_task_events");
+    await queryRunner.query("DROP TABLE IF EXISTS workspace_tasks");
   }
 }

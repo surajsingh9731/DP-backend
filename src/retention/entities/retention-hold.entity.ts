@@ -1,37 +1,47 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import type { RetentionHoldScope, RetentionHoldStatus } from '@sahmati/contracts';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
+import type {
+  RetentionHoldScope,
+  RetentionHoldStatus,
+} from "@sahmati/contracts";
 
 /** An owner preservation hold that takes precedence over any retention policy. */
-@Entity({ name: 'retention_holds' })
-@Index(['tenantId', 'entryId'])
+@Entity({ name: "retention_holds" })
+@Index(["tenantId", "entryId"])
 export class RetentionHoldEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   tenantId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   entryId!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   scope!: RetentionHoldScope;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   target!: string | null;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   reason!: string;
 
-  @Column({ type: 'text', default: 'active' })
+  @Column({ type: "text", default: "active" })
   status!: RetentionHoldStatus;
 
-  @Column({ type: 'int', default: 1 })
+  @Column({ type: "int", default: 1 })
   version!: number;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({ type: "timestamptz" })
   updatedAt!: Date;
 }

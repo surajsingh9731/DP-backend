@@ -1,5 +1,12 @@
-import { Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { Type } from "class-transformer";
+import {
+  IsBoolean,
+  IsIn,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateNested,
+} from "class-validator";
 
 export class RightsCorrectionDto {
   @IsString()
@@ -12,11 +19,11 @@ export class RightsCorrectionDto {
 }
 
 export class SubmitRightsDto {
-  @IsIn(['access', 'correction', 'erasure', 'grievance'])
-  kind!: 'access' | 'correction' | 'erasure' | 'grievance';
+  @IsIn(["access", "correction", "erasure", "grievance"])
+  kind!: "access" | "correction" | "erasure" | "grievance";
 
-  @IsIn(['en', 'hi'])
-  inputLanguage!: 'en' | 'hi';
+  @IsIn(["en", "hi"])
+  inputLanguage!: "en" | "hi";
 
   @IsString()
   @MaxLength(1200)

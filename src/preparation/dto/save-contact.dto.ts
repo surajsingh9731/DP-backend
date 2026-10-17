@@ -1,4 +1,4 @@
-import { IsEmail, IsInt, IsString, MaxLength, Min } from 'class-validator';
+import { IsEmail, IsInt, IsString, MaxLength, Min } from "class-validator";
 
 export class SaveContactDto {
   @IsInt()

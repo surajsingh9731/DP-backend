@@ -1,31 +1,45 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { createHash } from 'node:crypto';
-import type { TaskView, WorkspaceView } from '@sahmati/contracts';
-import { WorkspaceTaskEntity } from '../entities/workspace-task.entity';
-import { WorkspaceTaskEventEntity } from '../entities/workspace-task-event.entity';
-import { IdempotencyService } from '../../common/services/idempotency.service';
-import { TenantEntity } from '../../auth/entities/tenant.entity';
-import type { CurrentMembership } from '../../common/guards/tenant-membership.guard';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { createHash } from "node:crypto";
+import type { TaskView, WorkspaceView } from "@sahmati/contracts";
+import { WorkspaceTaskEntity } from "../entities/workspace-task.entity";
+import { WorkspaceTaskEventEntity } from "../entities/workspace-task-event.entity";
+import { IdempotencyService } from "../../common/services/idempotency.service";
+import { TenantEntity } from "../../auth/entities/tenant.entity";
+import type { CurrentMembership } from "../../common/guards/tenant-membership.guard";
 
 @Injectable()
 export class WorkspaceService {
   constructor(
-    @InjectRepository(WorkspaceTaskEntity) private readonly tasks: Repository<WorkspaceTaskEntity>,
+    @InjectRepository(WorkspaceTaskEntity)
+    private readonly tasks: Repository<WorkspaceTaskEntity>,
     @InjectRepository(WorkspaceTaskEventEntity)
     private readonly events: Repository<WorkspaceTaskEventEntity>,
-    @InjectRepository(TenantEntity) private readonly tenants: Repository<TenantEntity>,
+    @InjectRepository(TenantEntity)
+    private readonly tenants: Repository<TenantEntity>,
     private readonly idempotency: IdempotencyService,
   ) {}
 
-  async summary(tenantId: string, membership: CurrentMembership): Promise<WorkspaceView> {
+  async summary(
+    tenantId: string,
+    membership: CurrentMembership,
+  ): Promise<WorkspaceView> {
     const tenant = await this.tenants.findOne({ where: { id: tenantId } });
-    if (!tenant) throw new NotFoundException('Tenant not found.');
-    const tasks = await this.tasks.find({ where: { tenantId }, order: { createdAt: 'DESC' }, take: 20 });
+    if (!tenant) throw new NotFoundException("Tenant not found.");
+    const tasks = await this.tasks.find({
+      where: { tenantId },
+      order: { createdAt: "DESC" },
+      take: 20,
+    });
     const events = await this.events.find({
       where: { tenantId },
-      order: { sequence: 'DESC' },
+      order: { sequence: "DESC" },
       take: 20,
     });
     return {
@@ -50,21 +64,34 @@ export class WorkspaceService {
     idempotencyKey: string,
     membership: CurrentMembership,
   ): Promise<TaskView> {
-    if (membership.role !== 'owner') throw new ForbiddenException('Only an owner can create a task.');
-    return this.idempotency.runOnce(this.tasks.manager, tenantId, idempotencyKey, async () => {
-      const task = await this.tasks.save(
-        this.tasks.create({ tenantId, template: 'review_inventory', status: 'open', version: 1 }),
-      );
-      await this.events.save(
-        this.events.create({
-          tenantId,
-          taskId: task.id,
-          action: 'task.created',
-          eventHash: createHash('sha256').update(`created:${task.id}`).digest('hex'),
-        }),
-      );
-      return this.taskView(task);
-    });
+    if (membership.role !== "owner")
+      throw new ForbiddenException("Only an owner can create a task.");
+    return this.idempotency.runOnce(
+      this.tasks.manager,
+      tenantId,
+      idempotencyKey,
+      async () => {
+        const task = await this.tasks.save(
+          this.tasks.create({
+            tenantId,
+            template: "review_inventory",
+            status: "open",
+            version: 1,
+          }),
+        );
+        await this.events.save(
+          this.events.create({
+            tenantId,
+            taskId: task.id,
+            action: "task.created",
+            eventHash: createHash("sha256")
+              .update(`created:${task.id}`)
+              .digest("hex"),
+          }),
+        );
+        return this.taskView(task);
+      },
+    );
   }
 
   async closeTask(
@@ -73,19 +100,25 @@ export class WorkspaceService {
     version: number,
     membership: CurrentMembership,
   ): Promise<TaskView> {
-    if (membership.role === 'viewer') throw new ForbiddenException('Viewers cannot close tasks.');
+    if (membership.role === "viewer")
+      throw new ForbiddenException("Viewers cannot close tasks.");
     const task = await this.tasks.findOne({ where: { id, tenantId } });
-    if (!task) throw new NotFoundException('Task not found.');
-    if (task.version !== version) throw new ConflictException('This task changed since you last loaded it.');
-    task.status = 'closed';
+    if (!task) throw new NotFoundException("Task not found.");
+    if (task.version !== version)
+      throw new ConflictException(
+        "This task changed since you last loaded it.",
+      );
+    task.status = "closed";
     task.version += 1;
     await this.tasks.save(task);
     await this.events.save(
       this.events.create({
         tenantId,
         taskId: task.id,
-        action: 'task.closed',
-        eventHash: createHash('sha256').update(`closed:${task.id}:${task.version}`).digest('hex'),
+        action: "task.closed",
+        eventHash: createHash("sha256")
+          .update(`closed:${task.id}:${task.version}`)
+          .digest("hex"),
       }),
     );
     return this.taskView(task);

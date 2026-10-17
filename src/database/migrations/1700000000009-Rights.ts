@@ -1,7 +1,7 @@
-import type { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Rights1700000000009 implements MigrationInterface {
-  name = 'Rights1700000000009';
+  name = "Rights1700000000009";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -24,7 +24,9 @@ export class Rights1700000000009 implements MigrationInterface {
         assurance TEXT NOT NULL DEFAULT 'unverified-synthetic-adult'
       )
     `);
-    await queryRunner.query('CREATE INDEX rights_requests_tenant_idx ON rights_requests (tenant_id)');
+    await queryRunner.query(
+      "CREATE INDEX rights_requests_tenant_idx ON rights_requests (tenant_id)",
+    );
 
     await queryRunner.query(`
       CREATE TABLE rights_work_items (
@@ -39,7 +41,9 @@ export class Rights1700000000009 implements MigrationInterface {
         related_followup_task_id UUID
       )
     `);
-    await queryRunner.query('CREATE INDEX rights_work_items_request_idx ON rights_work_items (request_id)');
+    await queryRunner.query(
+      "CREATE INDEX rights_work_items_request_idx ON rights_work_items (request_id)",
+    );
 
     await queryRunner.query(`
       CREATE TABLE rights_responses (
@@ -54,7 +58,9 @@ export class Rights1700000000009 implements MigrationInterface {
         request_version INT NOT NULL
       )
     `);
-    await queryRunner.query('CREATE INDEX rights_responses_request_idx ON rights_responses (request_id)');
+    await queryRunner.query(
+      "CREATE INDEX rights_responses_request_idx ON rights_responses (request_id)",
+    );
 
     await queryRunner.query(`
       CREATE TABLE rights_audit_events (
@@ -71,13 +77,15 @@ export class Rights1700000000009 implements MigrationInterface {
         event_hash TEXT NOT NULL
       )
     `);
-    await queryRunner.query('CREATE INDEX rights_audit_events_request_idx ON rights_audit_events (request_id)');
+    await queryRunner.query(
+      "CREATE INDEX rights_audit_events_request_idx ON rights_audit_events (request_id)",
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS rights_audit_events');
-    await queryRunner.query('DROP TABLE IF EXISTS rights_responses');
-    await queryRunner.query('DROP TABLE IF EXISTS rights_work_items');
-    await queryRunner.query('DROP TABLE IF EXISTS rights_requests');
+    await queryRunner.query("DROP TABLE IF EXISTS rights_audit_events");
+    await queryRunner.query("DROP TABLE IF EXISTS rights_responses");
+    await queryRunner.query("DROP TABLE IF EXISTS rights_work_items");
+    await queryRunner.query("DROP TABLE IF EXISTS rights_requests");
   }
 }

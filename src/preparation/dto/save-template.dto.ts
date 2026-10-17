@@ -1,4 +1,4 @@
-import { IsIn, IsInt, IsString, MaxLength, Min } from 'class-validator';
+import { IsIn, IsInt, IsString, MaxLength, Min } from "class-validator";
 
 export class SaveTemplateDto {
   @IsInt()
@@ -13,11 +13,11 @@ export class SaveTemplateDto {
   @MaxLength(4000)
   body!: string;
 
-  @IsIn(['en', 'hi'])
-  language!: 'en' | 'hi';
+  @IsIn(["en", "hi"])
+  language!: "en" | "hi";
 
-  @IsIn(['custom-draft', 'education-sample'])
-  sourceKind!: 'custom-draft' | 'education-sample';
+  @IsIn(["custom-draft", "education-sample"])
+  sourceKind!: "custom-draft" | "education-sample";
 
   @IsString()
   idempotencyKey!: string;

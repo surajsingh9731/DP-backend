@@ -1,4 +1,4 @@
-import type { MigrationInterface, QueryRunner } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 /**
  * Foundation schema: tenants, users, memberships, auth challenges, sessions,
@@ -6,10 +6,10 @@ import type { MigrationInterface, QueryRunner } from 'typeorm';
  * Everything every later module depends on.
  */
 export class Foundation1700000000001 implements MigrationInterface {
-  name = 'Foundation1700000000001';
+  name = "Foundation1700000000001";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
+    await queryRunner.query("CREATE EXTENSION IF NOT EXISTS pgcrypto");
 
     await queryRunner.query(`
       CREATE TABLE tenants (
@@ -39,7 +39,9 @@ export class Foundation1700000000001 implements MigrationInterface {
         UNIQUE (tenant_id, user_id)
       )
     `);
-    await queryRunner.query('CREATE INDEX memberships_user_id_idx ON memberships (user_id)');
+    await queryRunner.query(
+      "CREATE INDEX memberships_user_id_idx ON memberships (user_id)",
+    );
 
     await queryRunner.query(`
       CREATE TABLE auth_challenges (
@@ -64,7 +66,9 @@ export class Foundation1700000000001 implements MigrationInterface {
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )
     `);
-    await queryRunner.query('CREATE INDEX sessions_user_id_idx ON sessions (user_id)');
+    await queryRunner.query(
+      "CREATE INDEX sessions_user_id_idx ON sessions (user_id)",
+    );
 
     await queryRunner.query(`
       CREATE TABLE local_mail (
@@ -108,21 +112,21 @@ export class Foundation1700000000001 implements MigrationInterface {
       )
     `);
     await queryRunner.query(
-      'CREATE INDEX evidence_ledger_tenant_kind_source_idx ON evidence_ledger_entries (tenant_id, kind, source_id)',
+      "CREATE INDEX evidence_ledger_tenant_kind_source_idx ON evidence_ledger_entries (tenant_id, kind, source_id)",
     );
     await queryRunner.query(
-      'CREATE INDEX evidence_ledger_tenant_occurred_idx ON evidence_ledger_entries (tenant_id, occurred_at)',
+      "CREATE INDEX evidence_ledger_tenant_occurred_idx ON evidence_ledger_entries (tenant_id, occurred_at)",
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('DROP TABLE IF EXISTS evidence_ledger_entries');
-    await queryRunner.query('DROP TABLE IF EXISTS idempotency_keys');
-    await queryRunner.query('DROP TABLE IF EXISTS local_mail');
-    await queryRunner.query('DROP TABLE IF EXISTS sessions');
-    await queryRunner.query('DROP TABLE IF EXISTS auth_challenges');
-    await queryRunner.query('DROP TABLE IF EXISTS memberships');
-    await queryRunner.query('DROP TABLE IF EXISTS users');
-    await queryRunner.query('DROP TABLE IF EXISTS tenants');
+    await queryRunner.query("DROP TABLE IF EXISTS evidence_ledger_entries");
+    await queryRunner.query("DROP TABLE IF EXISTS idempotency_keys");
+    await queryRunner.query("DROP TABLE IF EXISTS local_mail");
+    await queryRunner.query("DROP TABLE IF EXISTS sessions");
+    await queryRunner.query("DROP TABLE IF EXISTS auth_challenges");
+    await queryRunner.query("DROP TABLE IF EXISTS memberships");
+    await queryRunner.query("DROP TABLE IF EXISTS users");
+    await queryRunner.query("DROP TABLE IF EXISTS tenants");
   }
 }

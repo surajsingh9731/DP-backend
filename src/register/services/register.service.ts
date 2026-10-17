@@ -1,27 +1,35 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import type {
   NoticePreview,
   RegisterData,
   RegisterRevision,
   RegisterSourcePack,
   RegisterView,
-} from '@sahmati/contracts';
-import { RegisterEntryEntity } from '../entities/register-entry.entity';
-import { RegisterRevisionEntity } from '../entities/register-revision.entity';
-import { RegisterDataDto } from '../dto/register-data.dto';
+} from "@sahmati/contracts";
+import { RegisterEntryEntity } from "../entities/register-entry.entity";
+import { RegisterRevisionEntity } from "../entities/register-revision.entity";
+import { RegisterDataDto } from "../dto/register-data.dto";
 
 @Injectable()
 export class RegisterService {
   constructor(
-    @InjectRepository(RegisterEntryEntity) private readonly entries: Repository<RegisterEntryEntity>,
+    @InjectRepository(RegisterEntryEntity)
+    private readonly entries: Repository<RegisterEntryEntity>,
     @InjectRepository(RegisterRevisionEntity)
     private readonly revisions: Repository<RegisterRevisionEntity>,
   ) {}
 
   async list(tenantId: string): Promise<RegisterView[]> {
-    const rows = await this.entries.find({ where: { tenantId }, order: { createdAt: 'ASC' } });
+    const rows = await this.entries.find({
+      where: { tenantId },
+      order: { createdAt: "ASC" },
+    });
     return rows.map((row) => this.toView(row));
   }
 
@@ -31,7 +39,13 @@ export class RegisterService {
     sourcePack: RegisterSourcePack | null = null,
   ): Promise<RegisterView> {
     const entry = await this.entries.save(
-      this.entries.create({ tenantId, version: 1, status: 'draft', sourcePack, ...this.fields(data) }),
+      this.entries.create({
+        tenantId,
+        version: 1,
+        status: "draft",
+        sourcePack,
+        ...this.fields(data),
+      }),
     );
     await this.saveRevision(entry);
     return this.toView(entry);
@@ -44,9 +58,11 @@ export class RegisterService {
     data: RegisterDataDto,
   ): Promise<RegisterView> {
     const entry = await this.entries.findOne({ where: { id, tenantId } });
-    if (!entry) throw new NotFoundException('Register entry not found.');
+    if (!entry) throw new NotFoundException("Register entry not found.");
     if (entry.version !== expectedVersion) {
-      throw new ConflictException('This entry changed since you last loaded it.');
+      throw new ConflictException(
+        "This entry changed since you last loaded it.",
+      );
     }
     Object.assign(entry, this.fields(data));
     entry.version += 1;
@@ -57,8 +73,11 @@ export class RegisterService {
 
   async history(tenantId: string, id: string): Promise<RegisterRevision[]> {
     const entry = await this.entries.findOne({ where: { id, tenantId } });
-    if (!entry) throw new NotFoundException('Register entry not found.');
-    const rows = await this.revisions.find({ where: { entryId: id }, order: { version: 'ASC' } });
+    if (!entry) throw new NotFoundException("Register entry not found.");
+    const rows = await this.revisions.find({
+      where: { entryId: id },
+      order: { version: "ASC" },
+    });
     return rows.map((row) => ({
       version: row.version,
       createdAt: row.createdAt.toISOString(),
@@ -66,23 +85,29 @@ export class RegisterService {
     }));
   }
 
-  async noticePreview(tenantId: string, id: string, language: 'en' | 'hi'): Promise<NoticePreview> {
+  async noticePreview(
+    tenantId: string,
+    id: string,
+    language: "en" | "hi",
+  ): Promise<NoticePreview> {
     const entry = await this.entries.findOne({ where: { id, tenantId } });
-    if (!entry) throw new NotFoundException('Register entry not found.');
-    const purpose = language === 'hi' ? entry.purposeHi : entry.purposeEn;
-    const categories = entry.dataCategories.join(language === 'hi' ? ', ' : ', ');
+    if (!entry) throw new NotFoundException("Register entry not found.");
+    const purpose = language === "hi" ? entry.purposeHi : entry.purposeEn;
+    const categories = entry.dataCategories.join(
+      language === "hi" ? ", " : ", ",
+    );
     return {
       entryId: entry.id,
       version: entry.version,
       language,
-      status: 'unreviewed-draft',
+      status: "unreviewed-draft",
       title: entry.name,
       warning:
-        language === 'hi'
-          ? 'अपुष्ट स्थानीय नमूना मसौदा। यह कानूनी रूप से समीक्षित सूचना नहीं है।'
-          : 'Unreviewed local sample draft. This is not a legally reviewed notice.',
+        language === "hi"
+          ? "अपुष्ट स्थानीय नमूना मसौदा। यह कानूनी रूप से समीक्षित सूचना नहीं है।"
+          : "Unreviewed local sample draft. This is not a legally reviewed notice.",
       body:
-        language === 'hi'
+        language === "hi"
           ? `उद्देश्य: ${purpose}. डेटा श्रेणियां: ${categories}. संग्रहण: ${entry.storageLocation}. संपर्क: ${entry.contact}.`
           : `Purpose: ${purpose}. Data categories: ${categories}. Storage: ${entry.storageLocation}. Contact: ${entry.contact}.`,
       sourcePack: entry.sourcePack,

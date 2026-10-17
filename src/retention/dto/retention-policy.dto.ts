@@ -1,4 +1,13 @@
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from "class-validator";
 
 export class CreateRetentionPolicyDto {
   @IsString()
@@ -56,8 +65,8 @@ export class EditRetentionPolicyDto {
 }
 
 export class RetentionPolicyActionDto {
-  @IsIn(['submit', 'review', 'retire'])
-  action!: 'submit' | 'review' | 'retire';
+  @IsIn(["submit", "review", "retire"])
+  action!: "submit" | "review" | "retire";
 
   @IsInt()
   @Min(0)

@@ -1,12 +1,22 @@
-import { Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsInt, IsString, Min, ValidateNested } from 'class-validator';
+import { Type } from "class-transformer";
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsString,
+  Min,
+  ValidateNested,
+} from "class-validator";
 
 export class ConsentChoiceDto {
   @IsString()
   purposeId!: string;
 
-  @IsIn(['allow', 'decline'])
-  decision!: 'allow' | 'decline';
+  @IsIn(["allow", "decline"])
+  decision!: "allow" | "decline";
 }
 
 export class SubmitChoicesDto {
@@ -26,8 +36,8 @@ export class SubmitChoicesDto {
   @Type(() => ConsentChoiceDto)
   choices!: ConsentChoiceDto[];
 
-  @IsIn(['en', 'hi'])
-  interfaceLanguage!: 'en' | 'hi';
+  @IsIn(["en", "hi"])
+  interfaceLanguage!: "en" | "hi";
 
   @IsBoolean()
   syntheticOnlyAcknowledged!: true;
@@ -46,8 +56,8 @@ export class WithdrawChoicesDto {
   @IsString({ each: true })
   purposeIds!: string[];
 
-  @IsIn(['en', 'hi'])
-  interfaceLanguage!: 'en' | 'hi';
+  @IsIn(["en", "hi"])
+  interfaceLanguage!: "en" | "hi";
 
   @IsString()
   idempotencyKey!: string;

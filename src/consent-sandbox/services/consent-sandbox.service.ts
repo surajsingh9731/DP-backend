@@ -1,42 +1,66 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { createHash, randomUUID } from 'node:crypto';
-import type { ConsentOffer, ConsentParticipant, ConsentReceipt } from '@sahmati/contracts';
-import { ConsentOfferEntity } from '../entities/consent-offer.entity';
-import { ConsentParticipantEntity } from '../entities/consent-participant.entity';
-import { ConsentReceiptEntity } from '../entities/consent-receipt.entity';
-import { CreateOfferDto } from '../dto/create-offer.dto';
-import { SubmitChoicesDto, WithdrawChoicesDto } from '../dto/submit-choices.dto';
-import { NoticesService } from '../../notices/services/notices.service';
-import { DataSource } from 'typeorm';
-import { EvidenceLedgerService } from '../../common/services/evidence-ledger.service';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { createHash, randomUUID } from "node:crypto";
+import type {
+  ConsentOffer,
+  ConsentParticipant,
+  ConsentReceipt,
+} from "@sahmati/contracts";
+import { ConsentOfferEntity } from "../entities/consent-offer.entity";
+import { ConsentParticipantEntity } from "../entities/consent-participant.entity";
+import { ConsentReceiptEntity } from "../entities/consent-receipt.entity";
+import { CreateOfferDto } from "../dto/create-offer.dto";
+import {
+  SubmitChoicesDto,
+  WithdrawChoicesDto,
+} from "../dto/submit-choices.dto";
+import { NoticesService } from "../../notices/services/notices.service";
+import { DataSource } from "typeorm";
+import { EvidenceLedgerService } from "../../common/services/evidence-ledger.service";
 
 const SESSION_TTL_MS = 60 * 60_000;
 
 @Injectable()
 export class ConsentSandboxService {
   constructor(
-    @InjectRepository(ConsentOfferEntity) private readonly offers: Repository<ConsentOfferEntity>,
+    @InjectRepository(ConsentOfferEntity)
+    private readonly offers: Repository<ConsentOfferEntity>,
     @InjectRepository(ConsentParticipantEntity)
     private readonly participants: Repository<ConsentParticipantEntity>,
-    @InjectRepository(ConsentReceiptEntity) private readonly receipts: Repository<ConsentReceiptEntity>,
+    @InjectRepository(ConsentReceiptEntity)
+    private readonly receipts: Repository<ConsentReceiptEntity>,
     private readonly notices: NoticesService,
     private readonly dataSource: DataSource,
     private readonly evidence: EvidenceLedgerService,
   ) {}
 
   async listOffers(tenantId: string): Promise<ConsentOffer[]> {
-    const rows = await this.offers.find({ where: { tenantId }, order: { createdAt: 'DESC' } });
+    const rows = await this.offers.find({
+      where: { tenantId },
+      order: { createdAt: "DESC" },
+    });
     return rows.map((row) => this.offerView(row));
   }
 
-  async createOffer(tenantId: string, dto: CreateOfferDto): Promise<ConsentOffer> {
+  async createOffer(
+    tenantId: string,
+    dto: CreateOfferDto,
+  ): Promise<ConsentOffer> {
     const notice = await this.notices.get(tenantId, dto.noticeId);
-    if (notice.status !== 'sample_published') {
-      throw new BadRequestException('The chosen notice is not yet published as a sample.');
+    if (notice.status !== "sample_published") {
+      throw new BadRequestException(
+        "The chosen notice is not yet published as a sample.",
+      );
     }
-    const catalogHash = createHash('sha256').update(JSON.stringify(dto.purposes)).digest('hex');
+    const catalogHash = createHash("sha256")
+      .update(JSON.stringify(dto.purposes))
+      .digest("hex");
     const row = await this.offers.save(
       this.offers.create({
         tenantId,
@@ -57,13 +81,21 @@ export class ConsentSandboxService {
   }
 
   async ledger(tenantId: string): Promise<ConsentReceipt[]> {
-    const rows = await this.receipts.find({ where: { tenantId }, order: { occurredAt: 'DESC' } });
+    const rows = await this.receipts.find({
+      where: { tenantId },
+      order: { occurredAt: "DESC" },
+    });
     return rows.map((row) => this.receiptView(row));
   }
 
-  async startSession(tenantId: string, offerId: string): Promise<ConsentParticipant> {
-    const offer = await this.offers.findOne({ where: { id: offerId, tenantId } });
-    if (!offer) throw new NotFoundException('Consent offer not found.');
+  async startSession(
+    tenantId: string,
+    offerId: string,
+  ): Promise<ConsentParticipant> {
+    const offer = await this.offers.findOne({
+      where: { id: offerId, tenantId },
+    });
+    if (!offer) throw new NotFoundException("Consent offer not found.");
     const participant = await this.participants.save(
       this.participants.create({
         tenantId,
@@ -81,7 +113,7 @@ export class ConsentSandboxService {
     const { participant, offer } = await this.findSession(tenantId, id);
     const receipts = await this.receipts.find({
       where: { tenantId, sessionId: id },
-      order: { occurredAt: 'ASC' },
+      order: { occurredAt: "ASC" },
     });
     return this.participantView(participant, offer, receipts);
   }
@@ -99,10 +131,17 @@ export class ConsentSandboxService {
   ): Promise<ConsentReceipt> {
     const { participant, offer } = await this.findSession(tenantId, sessionId);
     if (participant.version !== 0) {
-      throw new ConflictException('Choices were already recorded for this session.');
+      throw new ConflictException(
+        "Choices were already recorded for this session.",
+      );
     }
-    if (offer.version !== dto.offerVersion || offer.catalogHash !== dto.catalogHash) {
-      throw new ConflictException('The offer changed since this session started.');
+    if (
+      offer.version !== dto.offerVersion ||
+      offer.catalogHash !== dto.catalogHash
+    ) {
+      throw new ConflictException(
+        "The offer changed since this session started.",
+      );
     }
     const offerView = this.offerView(offer);
     const previous = await this.lastReceipt(tenantId, sessionId);
@@ -112,11 +151,11 @@ export class ConsentSandboxService {
       syntheticReference: participant.syntheticReference,
       offer: offerView,
       version: participant.version + 1,
-      kind: 'choices_recorded',
+      kind: "choices_recorded",
       choices: dto.choices,
       interfaceLanguage: dto.interfaceLanguage,
       previousReceiptHash: previous?.receiptHash ?? null,
-      receiptHash: '',
+      receiptHash: "",
     });
     receipt.receiptHash = this.hashReceipt(receipt);
     await this.dataSource.transaction(async (manager) => {
@@ -125,12 +164,12 @@ export class ConsentSandboxService {
       await manager.save(participant);
       await this.evidence.append(manager, {
         tenantId,
-        kind: 'consent',
+        kind: "consent",
         sourceId: receipt.id,
         version: receipt.version,
-        action: 'choices_recorded',
+        action: "choices_recorded",
         status: receipt.kind,
-        provenance: 'recorded',
+        provenance: "recorded",
       });
     });
     return this.receiptView(receipt);
@@ -143,10 +182,14 @@ export class ConsentSandboxService {
   ): Promise<ConsentReceipt> {
     const { participant, offer } = await this.findSession(tenantId, sessionId);
     if (participant.version !== dto.version) {
-      throw new ConflictException('This session changed since you last loaded it.');
+      throw new ConflictException(
+        "This session changed since you last loaded it.",
+      );
     }
     if (participant.version === 0) {
-      throw new BadRequestException('No choices have been recorded yet for this session.');
+      throw new BadRequestException(
+        "No choices have been recorded yet for this session.",
+      );
     }
     const previous = await this.lastReceipt(tenantId, sessionId);
     const receipt = this.receipts.create({
@@ -155,11 +198,14 @@ export class ConsentSandboxService {
       syntheticReference: participant.syntheticReference,
       offer: this.offerView(offer),
       version: participant.version + 1,
-      kind: 'choices_withdrawn',
-      choices: dto.purposeIds.map((purposeId) => ({ purposeId, decision: 'decline' as const })),
+      kind: "choices_withdrawn",
+      choices: dto.purposeIds.map((purposeId) => ({
+        purposeId,
+        decision: "decline" as const,
+      })),
       interfaceLanguage: dto.interfaceLanguage,
       previousReceiptHash: previous?.receiptHash ?? null,
-      receiptHash: '',
+      receiptHash: "",
     });
     receipt.receiptHash = this.hashReceipt(receipt);
     await this.dataSource.transaction(async (manager) => {
@@ -168,12 +214,12 @@ export class ConsentSandboxService {
       await manager.save(participant);
       await this.evidence.append(manager, {
         tenantId,
-        kind: 'withdrawal',
+        kind: "withdrawal",
         sourceId: receipt.id,
         version: receipt.version,
-        action: 'choices_withdrawn',
+        action: "choices_withdrawn",
         status: receipt.kind,
-        provenance: 'recorded',
+        provenance: "recorded",
       });
     });
     return this.receiptView(receipt);
@@ -183,7 +229,10 @@ export class ConsentSandboxService {
     tenantId: string,
     sessionId: string,
   ): Promise<ConsentReceiptEntity | null> {
-    return this.receipts.findOne({ where: { tenantId, sessionId }, order: { occurredAt: 'DESC' } });
+    return this.receipts.findOne({
+      where: { tenantId, sessionId },
+      order: { occurredAt: "DESC" },
+    });
   }
 
   private hashReceipt(receipt: ConsentReceiptEntity): string {
@@ -194,17 +243,24 @@ export class ConsentSandboxService {
       kind: receipt.kind,
       choices: receipt.choices,
     });
-    return createHash('sha256').update(canonical).digest('hex');
+    return createHash("sha256").update(canonical).digest("hex");
   }
 
   private async findSession(
     tenantId: string,
     id: string,
-  ): Promise<{ participant: ConsentParticipantEntity; offer: ConsentOfferEntity }> {
-    const participant = await this.participants.findOne({ where: { id, tenantId } });
-    if (!participant) throw new NotFoundException('Consent session not found.');
-    const offer = await this.offers.findOne({ where: { id: participant.offerId, tenantId } });
-    if (!offer) throw new NotFoundException('Consent offer not found.');
+  ): Promise<{
+    participant: ConsentParticipantEntity;
+    offer: ConsentOfferEntity;
+  }> {
+    const participant = await this.participants.findOne({
+      where: { id, tenantId },
+    });
+    if (!participant) throw new NotFoundException("Consent session not found.");
+    const offer = await this.offers.findOne({
+      where: { id: participant.offerId, tenantId },
+    });
+    if (!offer) throw new NotFoundException("Consent offer not found.");
     return { participant, offer };
   }
 
