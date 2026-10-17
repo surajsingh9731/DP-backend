@@ -9,6 +9,8 @@ import { SetupModule } from './setup/setup.module';
 import { PreparationModule } from './preparation/preparation.module';
 import { NoticesModule } from './notices/notices.module';
 import { ConsentSandboxModule } from './consent-sandbox/consent-sandbox.module';
+import { FollowupsModule } from './followups/followups.module';
+import { ChecksModule } from './checks/checks.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { ConsentSandboxModule } from './consent-sandbox/consent-sandbox.module';
     PreparationModule,
     NoticesModule,
     ConsentSandboxModule,
+    FollowupsModule,
+    ChecksModule,
   ],
 })
 export class AppModule {}
