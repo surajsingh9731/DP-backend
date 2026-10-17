@@ -7,6 +7,8 @@ import { SessionEntity } from "../auth/entities/session.entity";
 import { ActivityLogEntity } from "../auth/entities/activity-log.entity";
 import { EvidenceLedgerEntryEntity } from "../common/entities/evidence-ledger-entry.entity";
 import { IdempotencyKeyEntity } from "../common/entities/idempotency-key.entity";
+import { RegisterEntryEntity } from "../register/entities/register-entry.entity";
+import { RegisterRevisionEntity } from "../register/entities/register-revision.entity";
 
 /**
  * Every TypeORM entity in the app, explicitly. Deliberately not a glob
@@ -30,4 +32,6 @@ export const ALL_ENTITIES = [
   ActivityLogEntity,
   EvidenceLedgerEntryEntity,
   IdempotencyKeyEntity,
+  RegisterEntryEntity,
+  RegisterRevisionEntity,
 ];
