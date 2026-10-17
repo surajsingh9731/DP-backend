@@ -9,6 +9,8 @@ import { ConsentReceiptEntity } from '../entities/consent-receipt.entity';
 import { CreateOfferDto } from '../dto/create-offer.dto';
 import { SubmitChoicesDto, WithdrawChoicesDto } from '../dto/submit-choices.dto';
 import { NoticesService } from '../../notices/services/notices.service';
+import { DataSource } from 'typeorm';
+import { EvidenceLedgerService } from '../../common/services/evidence-ledger.service';
 
 const SESSION_TTL_MS = 60 * 60_000;
 
@@ -20,6 +22,8 @@ export class ConsentSandboxService {
     private readonly participants: Repository<ConsentParticipantEntity>,
     @InjectRepository(ConsentReceiptEntity) private readonly receipts: Repository<ConsentReceiptEntity>,
     private readonly notices: NoticesService,
+    private readonly dataSource: DataSource,
+    private readonly evidence: EvidenceLedgerService,
   ) {}
 
   async listOffers(tenantId: string): Promise<ConsentOffer[]> {
@@ -115,9 +119,20 @@ export class ConsentSandboxService {
       receiptHash: '',
     });
     receipt.receiptHash = this.hashReceipt(receipt);
-    await this.receipts.save(receipt);
-    participant.version += 1;
-    await this.participants.save(participant);
+    await this.dataSource.transaction(async (manager) => {
+      await manager.save(receipt);
+      participant.version += 1;
+      await manager.save(participant);
+      await this.evidence.append(manager, {
+        tenantId,
+        kind: 'consent',
+        sourceId: receipt.id,
+        version: receipt.version,
+        action: 'choices_recorded',
+        status: receipt.kind,
+        provenance: 'recorded',
+      });
+    });
     return this.receiptView(receipt);
   }
 
@@ -147,9 +162,20 @@ export class ConsentSandboxService {
       receiptHash: '',
     });
     receipt.receiptHash = this.hashReceipt(receipt);
-    await this.receipts.save(receipt);
-    participant.version += 1;
-    await this.participants.save(participant);
+    await this.dataSource.transaction(async (manager) => {
+      await manager.save(receipt);
+      participant.version += 1;
+      await manager.save(participant);
+      await this.evidence.append(manager, {
+        tenantId,
+        kind: 'withdrawal',
+        sourceId: receipt.id,
+        version: receipt.version,
+        action: 'choices_withdrawn',
+        status: receipt.kind,
+        provenance: 'recorded',
+      });
+    });
     return this.receiptView(receipt);
   }
 

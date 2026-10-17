@@ -11,6 +11,8 @@ import { PreparationService } from '../../preparation/services/preparation.servi
 import { NoticePdfService } from './notice-pdf.service';
 import type { CurrentMembership } from '../../common/guards/tenant-membership.guard';
 import type { TemplatePreparationData, ContactPreparationData } from '@sahmati/contracts';
+import { DataSource } from 'typeorm';
+import { EvidenceLedgerService } from '../../common/services/evidence-ledger.service';
 
 @Injectable()
 export class NoticesService {
@@ -20,6 +22,8 @@ export class NoticesService {
     private readonly register: RegisterService,
     private readonly preparation: PreparationService,
     private readonly pdf: NoticePdfService,
+    private readonly dataSource: DataSource,
+    private readonly evidence: EvidenceLedgerService,
   ) {}
 
   async list(tenantId: string): Promise<NoticeSnapshotView[]> {
@@ -76,34 +80,47 @@ export class NoticesService {
       preview.warning = `${preview.warning} Internally reviewed contact: ${contactData.displayName}.`;
     }
 
-    const row = await this.snapshots.save(
-      this.snapshots.create({
+    const row = await this.dataSource.transaction(async (manager) => {
+      const saved = await manager.save(
+        manager.create(NoticeSnapshotEntity, {
+          tenantId,
+          entryId: dto.entryId,
+          entryVersion: dto.entryVersion,
+          language: dto.language,
+          legalReviewStatus: 'unreviewed',
+          sourcePack: entry.sourcePack ?? null,
+          preview,
+          registerData: {
+            name: entry.name,
+            purposeEn: entry.purposeEn,
+            purposeHi: entry.purposeHi,
+            dataCategories: entry.dataCategories,
+            storageLocation: entry.storageLocation,
+            retentionNote: entry.retentionNote,
+            contact: entry.contact,
+            vendorReferences: entry.vendorReferences,
+            storageReferences: entry.storageReferences,
+            hasPaperRecords: entry.hasPaperRecords,
+          },
+          submittedBy: membership.userId,
+          reviewVersion: 1,
+          status: 'in_review',
+          decisions: [],
+          preparationSource,
+        }),
+      );
+      await this.evidence.append(manager, {
         tenantId,
-        entryId: dto.entryId,
-        entryVersion: dto.entryVersion,
-        language: dto.language,
-        legalReviewStatus: 'unreviewed',
-        sourcePack: entry.sourcePack ?? null,
-        preview,
-        registerData: {
-          name: entry.name,
-          purposeEn: entry.purposeEn,
-          purposeHi: entry.purposeHi,
-          dataCategories: entry.dataCategories,
-          storageLocation: entry.storageLocation,
-          retentionNote: entry.retentionNote,
-          contact: entry.contact,
-          vendorReferences: entry.vendorReferences,
-          storageReferences: entry.storageReferences,
-          hasPaperRecords: entry.hasPaperRecords,
-        },
-        submittedBy: membership.userId,
-        reviewVersion: 1,
-        status: 'in_review',
-        decisions: [],
-        preparationSource,
-      }),
-    );
+        kind: 'notice',
+        sourceId: saved.id,
+        version: saved.reviewVersion,
+        action: 'submit',
+        status: saved.status,
+        provenance: 'recorded',
+        actorId: membership.userId,
+      });
+      return saved;
+    });
     return this.toView(row);
   }
 
@@ -139,7 +156,19 @@ export class NoticesService {
     ];
     row.status = dto.decision === 'publish_sample' ? 'sample_published' : 'changes_requested';
     row.reviewVersion += 1;
-    await this.snapshots.save(row);
+    await this.dataSource.transaction(async (manager) => {
+      await manager.save(row);
+      await this.evidence.append(manager, {
+        tenantId,
+        kind: 'notice_decision',
+        sourceId: row.id,
+        version: row.reviewVersion,
+        action: dto.decision,
+        status: row.status,
+        provenance: 'recorded',
+        actorId: membership.userId,
+      });
+    });
     return this.toView(row);
   }
 

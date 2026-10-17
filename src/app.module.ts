@@ -11,6 +11,8 @@ import { NoticesModule } from './notices/notices.module';
 import { ConsentSandboxModule } from './consent-sandbox/consent-sandbox.module';
 import { FollowupsModule } from './followups/followups.module';
 import { ChecksModule } from './checks/checks.module';
+import { RightsModule } from './rights/rights.module';
+import { WorkspaceModule } from './workspace/workspace.module';
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { ChecksModule } from './checks/checks.module';
     CommonModule,
     AuthModule,
     LocalModule,
+    WorkspaceModule,
     RegisterModule,
     SetupModule,
     PreparationModule,
@@ -26,6 +29,7 @@ import { ChecksModule } from './checks/checks.module';
     ConsentSandboxModule,
     FollowupsModule,
     ChecksModule,
+    RightsModule,
   ],
 })
 export class AppModule {}

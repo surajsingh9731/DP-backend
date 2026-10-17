@@ -10,6 +10,7 @@ import { ReviewEvidenceDto } from '../dto/review-evidence.dto';
 import { ResolveLocationDto } from '../dto/resolve-location.dto';
 import { FollowupTaskEntity } from '../../followups/entities/followup-task.entity';
 import { IdempotencyService } from '../../common/services/idempotency.service';
+import { EvidenceLedgerService } from '../../common/services/evidence-ledger.service';
 import type { CurrentMembership } from '../../common/guards/tenant-membership.guard';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class ChecksService {
     @InjectRepository(FollowupTaskEntity) private readonly tasks: Repository<FollowupTaskEntity>,
     private readonly dataSource: DataSource,
     private readonly idempotency: IdempotencyService,
+    private readonly evidence: EvidenceLedgerService,
   ) {}
 
   async get(tenantId: string, taskId: string): Promise<CheckDetail> {
@@ -107,6 +109,16 @@ export class ChecksService {
             mode: 'local-sample',
           }),
         );
+        await this.evidence.append(manager, {
+          tenantId,
+          kind: 'check_evaluation',
+          sourceId: evaluation.id,
+          version: evaluation.taskVersion,
+          action: 'local_evaluation',
+          status: freshness,
+          provenance: 'computed',
+          actorId: membership.userId,
+        });
         return this.evaluationView(evaluation);
       });
     });
@@ -147,6 +159,18 @@ export class ChecksService {
             validUntil: new Date(Date.now() + dto.validForMinutes * 60_000),
           }),
         );
+        await this.evidence.append(manager, {
+          tenantId,
+          kind: 'check_review',
+          sourceId: review.id,
+          version: review.version,
+          action: 'manual_review',
+          status: review.result,
+          provenance: 'manual',
+          actorId: membership.userId,
+          note: review.rationale,
+          evidenceRefs: review.evidenceRefs,
+        });
         return this.reviewView(review);
       });
     });

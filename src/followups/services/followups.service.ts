@@ -19,6 +19,7 @@ import { RegisterService } from '../../register/services/register.service';
 import { MembershipEntity } from '../../auth/entities/membership.entity';
 import { UserEntity } from '../../auth/entities/user.entity';
 import type { CurrentMembership } from '../../common/guards/tenant-membership.guard';
+import { EvidenceLedgerService } from '../../common/services/evidence-ledger.service';
 
 @Injectable()
 export class FollowupsService {
@@ -32,6 +33,7 @@ export class FollowupsService {
     private readonly consent: ConsentSandboxService,
     private readonly notices: NoticesService,
     private readonly register: RegisterService,
+    private readonly evidence: EvidenceLedgerService,
   ) {}
 
   async list(tenantId: string): Promise<FollowupTask[]> {
@@ -158,6 +160,16 @@ export class FollowupsService {
               task: this.toView(task),
             }),
           );
+          await this.evidence.append(manager, {
+            tenantId,
+            kind: 'followup',
+            sourceId: task.id,
+            version: task.version,
+            action: 'created',
+            status: task.status,
+            provenance: 'recorded',
+            actorId: membership.userId,
+          });
           createdTasks.push(task);
         }
         return createdTasks.map((row) => this.toView(row));
@@ -203,6 +215,18 @@ export class FollowupsService {
             task: this.toView(task),
           }),
         );
+        await this.evidence.append(manager, {
+          tenantId,
+          kind: 'followup',
+          sourceId: task.id,
+          version: task.version,
+          action: dto.action,
+          status: task.status,
+          provenance: 'recorded',
+          actorId: membership.userId,
+          note: dto.note,
+          evidenceRefs: dto.evidenceRefs,
+        });
         return this.toView(task);
       });
     });
