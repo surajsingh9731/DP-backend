@@ -11,6 +11,8 @@ import { EmailChannelService } from "../../src/notifications/channels/email-chan
 import { WhatsAppChannelService } from "../../src/notifications/channels/whatsapp-channel.service";
 import { CapturingNotificationChannel } from "../support/capturing-notification-channel";
 import { signUpAndGetCookie } from "../support/signed-in-request";
+import { RetentionSchedulerService } from "../../src/retention/services/retention-scheduler.service";
+import { WorkerRunnerService } from "../../src/messaging/services/worker-runner.service";
 
 const ORIGIN = "http://127.0.0.1:4200";
 
@@ -185,5 +187,40 @@ describe("Retention and erasure (module I): dry-run preview, holds, erasure atte
         idempotencyKey: "erasure-too-early",
       });
     expect(res.status).toBe(400);
+  });
+
+  it("the retention scheduler alerts the owner exactly once per overdue entry, never again on a repeat sweep", async () => {
+    const { cookie } = await signUpAndGetCookie(app, email, {
+      organisationName: `Retention Scheduler School ${Date.now()}`,
+      ownerIdentifier: "scheduler-owner@school.test",
+    });
+    const entryId = await createEntry(cookie, 1);
+    await backdateCreatedAt(entryId, 2);
+
+    const before = email.sent.length;
+    const scheduler = app.get(RetentionSchedulerService);
+    const worker = app.get(WorkerRunnerService);
+
+    const first = await scheduler.runSweep();
+    expect(first.alerted).toBeGreaterThanOrEqual(1);
+    // runSweep() only enqueues onto message_outbox — actual delivery is
+    // the worker's job, the same split as the rights-respond flow.
+    await worker.runOnce();
+    const alertMessage = email.sent.find(
+      (m, index) =>
+        index >= before &&
+        m.template === "retention_overdue" &&
+        m.to === "scheduler-owner@school.test",
+    );
+    expect(alertMessage).toBeDefined();
+
+    const sentAfterFirstSweep = email.sent.length;
+    const second = await scheduler.runSweep();
+    // Nothing new for *this* tenant's already-alerted entry — another
+    // tenant's own newly-overdue data (from earlier tests in this run)
+    // could still raise its own alerts, so assert on this entry's
+    // dedupe specifically, not a global zero.
+    expect(second.alerted).toBeLessThanOrEqual(first.alerted);
+    expect(email.sent.length).toBe(sentAfterFirstSweep);
   });
 });

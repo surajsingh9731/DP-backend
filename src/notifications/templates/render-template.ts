@@ -43,6 +43,19 @@ export function renderTemplate(
             body: `आपका ${kind} अनुरोध अब "${status}" स्थिति में है। पूरा जवाब देखने के लिए आपने पहले इस्तेमाल किए गए सत्यापन लिंक से साइन इन करें।`,
           };
     }
+    case "retention_overdue": {
+      const purposeEn = String(payload.purposeEn);
+      const dueAt = String(payload.dueAt).slice(0, 10);
+      return en
+        ? {
+            subject: "Data past its retention window",
+            body: `"${purposeEn}" has been past its retention window since ${dueAt}. Review it in the retention desk and either erase it or place a hold with a reason.`,
+          }
+        : {
+            subject: "डेटा अपनी धारण अवधि से आगे निकल गया है",
+            body: `"${purposeEn}" ${dueAt} से अपनी धारण अवधि से आगे निकल गया है। इसे रिटेंशन डेस्क में देखें और इसे मिटा दें या कारण के साथ होल्ड लगाएं।`,
+          };
+    }
     default:
       throw new Error(`Unknown notification template: ${template}`);
   }

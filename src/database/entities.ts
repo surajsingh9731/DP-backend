@@ -18,7 +18,10 @@ import { RightsRequestEntity } from "../rights/entities/rights-request.entity";
 import { BreachIncidentEntity } from "../breach/entities/breach-incident.entity";
 import { RetentionHoldEntity } from "../retention/entities/retention-hold.entity";
 import { RetentionActionEntity } from "../retention/entities/retention-action.entity";
+import { RetentionAlertEntity } from "../retention/entities/retention-alert.entity";
 import { MessageOutboxEntity } from "../messaging/entities/message-outbox.entity";
+import { VendorEntity } from "../vendors/entities/vendor.entity";
+import { VendorDeletionInstructionEntity } from "../vendors/entities/vendor-deletion-instruction.entity";
 
 /**
  * Every TypeORM entity in the app, explicitly. Deliberately not a glob
@@ -53,5 +56,8 @@ export const ALL_ENTITIES = [
   BreachIncidentEntity,
   RetentionHoldEntity,
   RetentionActionEntity,
+  RetentionAlertEntity,
   MessageOutboxEntity,
+  VendorEntity,
+  VendorDeletionInstructionEntity,
 ];

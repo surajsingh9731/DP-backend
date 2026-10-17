@@ -15,6 +15,7 @@ import { TenantContextService } from "./services/tenant-context.service";
 import { HttpExceptionFilter } from "./filters/http-exception.filter";
 import { EvidenceLedgerService } from "./services/evidence-ledger.service";
 import { IdempotencyService } from "./services/idempotency.service";
+import { TenantSweepService } from "./services/tenant-sweep.service";
 
 @Global()
 @Module({
@@ -24,12 +25,18 @@ import { IdempotencyService } from "./services/idempotency.service";
     TenantContextService,
     EvidenceLedgerService,
     IdempotencyService,
+    TenantSweepService,
     { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_INTERCEPTOR, useClass: TenantContextInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ResponseEnvelopeInterceptor },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
-  exports: [TenantContextService, EvidenceLedgerService, IdempotencyService],
+  exports: [
+    TenantContextService,
+    EvidenceLedgerService,
+    IdempotencyService,
+    TenantSweepService,
+  ],
 })
 export class CommonModule {}

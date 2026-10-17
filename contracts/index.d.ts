@@ -280,3 +280,39 @@ export interface DashboardCheckView {
   summary: string;
   count: number;
 }
+
+// ---------------------------------------------------------------------------
+// Module J — vendor register (R2)
+// ---------------------------------------------------------------------------
+
+export type VendorAgreementStatus = "not_sent" | "sent" | "signed";
+export type VendorDeletionInstructionStatus =
+  "pending" | "acknowledged" | "declared_complete" | "failed";
+
+export interface VendorView {
+  id: string;
+  name: string;
+  serviceDescription: string;
+  contactEmail: string;
+  agreementStatus: VendorAgreementStatus;
+  agreementSentAt: string | null;
+  agreementSignedAt: string | null;
+  agreementDocumentRef: string | null;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VendorDeletionInstructionView {
+  id: string;
+  vendorId: string;
+  registerEntryId: string;
+  instructionText: string;
+  status: VendorDeletionInstructionStatus;
+  acknowledgedAt: string | null;
+  resolvedAt: string | null;
+  evidenceNote: string | null;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}

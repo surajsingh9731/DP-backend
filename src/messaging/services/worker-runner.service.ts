@@ -1,82 +1,51 @@
 import { Injectable, Logger } from "@nestjs/common";
 import type { Repository } from "typeorm";
-import { DataSource } from "typeorm";
 import { MessageOutboxEntity } from "../entities/message-outbox.entity";
 import { TenantContextService } from "../../common/services/tenant-context.service";
+import { TenantSweepService } from "../../common/services/tenant-sweep.service";
 import { NotificationsService } from "../../notifications/services/notifications.service";
 
 const MAX_ATTEMPTS = 5;
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 /**
  * The one piece of src/worker/main.ts's job that's worth unit/integration
  * testing in isolation: draining pending message_outbox rows. Runs as a
  * provider (not tied to the HTTP request lifecycle) so both the standalone
- * worker process and tests can call `runOnce()` directly. Iterates tenants
- * one at a time, each under its own transaction with `app.tenant_id` set —
- * exactly the same RLS-respecting pattern TenantContextInterceptor uses per
- * request, just driven by a poll loop instead of an incoming request.
+ * worker process and tests can call `runOnce()` directly. Delegates the
+ * per-tenant transaction looping to TenantSweepService, shared with
+ * RetentionSchedulerService.
  */
 @Injectable()
 export class WorkerRunnerService {
   private readonly logger = new Logger(WorkerRunnerService.name);
 
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly tenantSweep: TenantSweepService,
     private readonly tenantContext: TenantContextService,
     private readonly notifications: NotificationsService,
   ) {}
 
   async runOnce(batchSize = 20): Promise<{ processed: number }> {
-    const tenants: { id: string }[] = await this.dataSource.query(
-      `SELECT id FROM organisations`,
+    const counts = await this.tenantSweep.forEachTenant((tenantId) =>
+      this.deliverPendingForTenant(tenantId, batchSize),
     );
-    let processed = 0;
-    for (const { id: tenantId } of tenants) {
-      processed += await this.processTenant(tenantId, batchSize);
-    }
-    return { processed };
+    return { processed: counts.reduce((sum, count) => sum + count, 0) };
   }
 
-  private async processTenant(
+  private async deliverPendingForTenant(
     tenantId: string,
     batchSize: number,
   ): Promise<number> {
-    if (!UUID_RE.test(tenantId)) {
-      throw new Error(
-        "Organisation id is not a UUID — refusing to interpolate it into SET LOCAL.",
-      );
+    const repo = this.tenantContext.repo(MessageOutboxEntity);
+    const pending = await repo.find({
+      where: { tenantId, status: "pending" },
+      order: { createdAt: "ASC" },
+      take: batchSize,
+    });
+    for (const row of pending) {
+      await this.deliverOne(repo, row);
     }
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      await queryRunner.query(`SET LOCAL app.tenant_id = '${tenantId}'`);
-      await queryRunner.query(`SET LOCAL app.participant_session_id = ''`);
-      const processed = await this.tenantContext.run(
-        { manager: queryRunner.manager, tenantId },
-        async () => {
-          const repo = queryRunner.manager.getRepository(MessageOutboxEntity);
-          const pending = await repo.find({
-            where: { tenantId, status: "pending" },
-            order: { createdAt: "ASC" },
-            take: batchSize,
-          });
-          for (const row of pending) {
-            await this.deliverOne(repo, row);
-          }
-          return pending.length;
-        },
-      );
-      await queryRunner.commitTransaction();
-      return processed;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+    return pending.length;
   }
 
   private async deliverOne(
