@@ -4,8 +4,24 @@ import { DatabaseModule } from './database/database.module';
 import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';
 import { LocalModule } from './local/local.module';
+import { RegisterModule } from './register/register.module';
+import { SetupModule } from './setup/setup.module';
+import { PreparationModule } from './preparation/preparation.module';
+import { NoticesModule } from './notices/notices.module';
+import { ConsentSandboxModule } from './consent-sandbox/consent-sandbox.module';
 
 @Module({
-  imports: [AppConfigModule, DatabaseModule, CommonModule, AuthModule, LocalModule],
+  imports: [
+    AppConfigModule,
+    DatabaseModule,
+    CommonModule,
+    AuthModule,
+    LocalModule,
+    RegisterModule,
+    SetupModule,
+    PreparationModule,
+    NoticesModule,
+    ConsentSandboxModule,
+  ],
 })
 export class AppModule {}
