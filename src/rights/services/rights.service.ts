@@ -20,6 +20,7 @@ import { RightsRequestEntity } from "../entities/rights-request.entity";
 import { RightsWorkItemEntity } from "../entities/rights-work-item.entity";
 import { RightsResponseEntity } from "../entities/rights-response.entity";
 import { RightsAuditEventEntity } from "../entities/rights-audit-event.entity";
+import { FollowupTaskEntity } from "../../followups/entities/followup-task.entity";
 import { SubmitRightsDto } from "../dto/submit-rights.dto";
 import { RightsActionDto } from "../dto/rights-action.dto";
 import { ConsentSandboxService } from "../../consent-sandbox/services/consent-sandbox.service";
@@ -110,7 +111,13 @@ export class RightsService {
           assignee: null,
         }),
       );
-      await this.createWorkItems(manager, tenantId, request.id, notice.entryId);
+      await this.createWorkItems(
+        manager,
+        tenantId,
+        request.id,
+        notice.entryId,
+        latestReceipt?.id ?? null,
+      );
       await this.appendAudit(
         manager,
         request.id,
@@ -157,6 +164,19 @@ export class RightsService {
   async get(tenantId: string, id: string): Promise<RightsDetail> {
     const row = await this.findOrThrow(tenantId, id);
     return this.detailView(row);
+  }
+
+  /** Receipt ids with a rights request still open (not yet closed), for cross-module review flags. */
+  async openSourceReceiptIds(tenantId: string): Promise<Set<string>> {
+    const rows = await this.requests.find({
+      where: { tenantId },
+      select: { status: true, source: true },
+    });
+    return new Set(
+      rows
+        .filter((row) => row.status !== "closed" && row.source.sourceReceiptId)
+        .map((row) => row.source.sourceReceiptId as string),
+    );
   }
 
   async act(
@@ -219,6 +239,7 @@ export class RightsService {
     tenantId: string,
     requestId: string,
     entryId: string,
+    sourceReceiptId: string | null,
   ): Promise<void> {
     const entries = await this.register.list(tenantId);
     const entry = entries.find((row) => row.id === entryId);
@@ -245,10 +266,23 @@ export class RightsService {
               detail: "Unknown coverage.",
             },
           ];
+    // A withdrawal follow-up may already exist for this same receipt (the
+    // common path: a participant withdraws first, then separately files a
+    // rights request referencing that withdrawal). Link each work item to
+    // its counterpart follow-up task by matching declared location name so
+    // staff see both tracks of remediation together.
+    const relatedFollowups = sourceReceiptId
+      ? await manager.find(FollowupTaskEntity, {
+          where: { tenantId, receiptId: sourceReceiptId },
+        })
+      : [];
     for (const location of locations) {
       const key = createHash("sha256")
         .update(`${requestId}:${location.kind}:${location.name}`)
         .digest("hex");
+      const relatedFollowupTaskId =
+        relatedFollowups.find((task) => task.location.name === location.name)
+          ?.id ?? null;
       await manager.save(
         manager.create(RightsWorkItemEntity, {
           requestId,
@@ -270,7 +304,7 @@ export class RightsService {
               : ("pending" as const),
           declaredBy: null,
           declaredEvidence: [],
-          relatedFollowupTaskId: null,
+          relatedFollowupTaskId,
         }),
       );
     }

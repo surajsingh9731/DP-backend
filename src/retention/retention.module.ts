@@ -9,6 +9,8 @@ import { RetentionController } from "./controllers/retention.controller";
 import { RegisterModule } from "../register/register.module";
 import { ConsentSandboxModule } from "../consent-sandbox/consent-sandbox.module";
 import { NoticesModule } from "../notices/notices.module";
+import { RightsModule } from "../rights/rights.module";
+import { FollowupsModule } from "../followups/followups.module";
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { NoticesModule } from "../notices/notices.module";
     RegisterModule,
     ConsentSandboxModule,
     NoticesModule,
+    RightsModule,
+    FollowupsModule,
   ],
   controllers: [RetentionController],
   providers: [RetentionService],

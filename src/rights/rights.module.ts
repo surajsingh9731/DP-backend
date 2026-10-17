@@ -29,5 +29,6 @@ import { MessagesModule } from "../messages/messages.module";
   ],
   controllers: [RightsParticipantController, RightsAdminController],
   providers: [RightsService],
+  exports: [RightsService],
 })
 export class RightsModule {}

@@ -16,6 +16,8 @@ import type {
 } from "@sahmati/contracts";
 import { FollowupTaskEntity } from "../entities/followup-task.entity";
 import { FollowupEventEntity } from "../entities/followup-event.entity";
+import { RightsRequestEntity } from "../../rights/entities/rights-request.entity";
+import { RightsWorkItemEntity } from "../../rights/entities/rights-work-item.entity";
 import { CreateFromReceiptDto } from "../dto/create-from-receipt.dto";
 import { FollowupActionDto } from "../dto/followup-action.dto";
 import { IdempotencyService } from "../../common/services/idempotency.service";
@@ -142,6 +144,29 @@ export class FollowupsService {
           const purposeIds = receipt.choices.map((choice) => choice.purposeId);
           const createdTasks: FollowupTaskEntity[] = [];
 
+          // A rights request may already reference this same withdrawal
+          // receipt (the less common ordering: a rights request filed
+          // before this follow-up is created). Collect its work items now
+          // so each new task can be linked back by matching location name.
+          const relatedRequestIds = (
+            await manager
+              .getRepository(RightsRequestEntity)
+              .createQueryBuilder("row")
+              .where("row.tenantId = :tenantId", { tenantId })
+              .andWhere("row.source->>'sourceReceiptId' = :receiptId", {
+                receiptId: receipt.id,
+              })
+              .getMany()
+          ).map((row) => row.id);
+          const relatedWorkItems = relatedRequestIds.length
+            ? await manager.find(RightsWorkItemEntity, {
+                where: relatedRequestIds.map((requestId) => ({
+                  tenantId,
+                  requestId,
+                })),
+              })
+            : [];
+
           const sourceLocations =
             declaredLocations.length > 0
               ? declaredLocations
@@ -189,6 +214,13 @@ export class FollowupsService {
               mappedTaskIds: null,
             });
             await manager.save(task);
+            const matchingWorkItems = relatedWorkItems.filter(
+              (item) => item.location.name === location.name,
+            );
+            for (const workItem of matchingWorkItems) {
+              workItem.relatedFollowupTaskId = task.id;
+              await manager.save(workItem);
+            }
             await manager.save(
               manager.create(FollowupEventEntity, {
                 taskId: task.id,

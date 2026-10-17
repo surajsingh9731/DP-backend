@@ -34,6 +34,8 @@ import { CreatePreviewDto } from "../dto/create-preview.dto";
 import { RegisterService } from "../../register/services/register.service";
 import { ConsentSandboxService } from "../../consent-sandbox/services/consent-sandbox.service";
 import { NoticesService } from "../../notices/services/notices.service";
+import { RightsService } from "../../rights/services/rights.service";
+import { FollowupsService } from "../../followups/services/followups.service";
 import { IdempotencyService } from "../../common/services/idempotency.service";
 import { decodeCursor, encodeCursor } from "../../common/pagination/cursor";
 import type { CurrentMembership } from "../../common/guards/tenant-membership.guard";
@@ -47,6 +49,20 @@ export interface RetentionSavedPreview {
   asOf: string;
   createdAt: string;
   contentHash: string;
+}
+
+interface PreviewSampleRecord {
+  id: string;
+  referenceAt: string | null;
+  withdrawn: boolean;
+  rightsReview: boolean;
+  followupReview: boolean;
+}
+
+interface PreviewLocation {
+  kind: string;
+  name: string;
+  detail: string;
 }
 
 @Injectable()
@@ -65,6 +81,8 @@ export class RetentionService {
     private readonly register: RegisterService,
     private readonly consent: ConsentSandboxService,
     private readonly notices: NoticesService,
+    private readonly rights: RightsService,
+    private readonly followups: FollowupsService,
   ) {}
 
   // -- Listing / context ---------------------------------------------------
@@ -418,11 +436,21 @@ export class RetentionService {
     const activeHolds = await this.holds.find({
       where: { tenantId, entryId: dto.entryId, status: "active" },
     });
-    const activePolicy = await this.policies.findOne({
+    const reviewedPolicies = await this.policies.find({
       where: { tenantId, entryId: dto.entryId, status: "internally_reviewed" },
       order: { updatedAt: "DESC" },
     });
-    const locations = [
+    const distinctDurations = new Set(
+      reviewedPolicies.map((p) => p.durationDays),
+    );
+    // More than one internally reviewed policy with a different retention
+    // window is a genuine conflict: the due date is ambiguous until an
+    // owner retires the stale one, so every item is reported as 'conflict'
+    // rather than silently picking a winner.
+    const policyConflict = distinctDurations.size > 1;
+    const activePolicy = reviewedPolicies[0] ?? null;
+
+    const locations: PreviewLocation[] = [
       ...(entry.vendorReferences ?? []).map((ref) => ({
         kind: "vendor",
         name: ref.name,
@@ -444,101 +472,16 @@ export class RetentionService {
       for (const location of locations.length
         ? locations
         : [{ kind: "unmapped", name: "other", detail: "" }]) {
-        const key = createHash("sha256")
-          .update(`${sample.id}:${location.kind}:${location.name}`)
-          .digest("hex");
-        const activityHold = activeHolds.find((h) => h.scope === "activity");
-        const locationHold = activeHolds.find(
-          (h) => h.scope === "location" && h.target === location.name,
+        items.push(
+          this.previewItem(
+            sample,
+            location,
+            activePolicy,
+            policyConflict,
+            activeHolds,
+            asOfMs,
+          ),
         );
-        const recordHold = activeHolds.find(
-          (h) => h.scope === "sample_record" && h.target === sample.id,
-        );
-        if (activityHold || locationHold || recordHold) {
-          items.push({
-            key,
-            sampleRecordId: sample.id,
-            location: {
-              key,
-              kind: location.kind,
-              name: location.name,
-              detail: location.detail,
-            },
-            outcome: "held",
-            reasons: ["active_hold"],
-            referenceAt: sample.referenceAt,
-            dueAt: null,
-          });
-          continue;
-        }
-        if (!activePolicy) {
-          items.push({
-            key,
-            sampleRecordId: sample.id,
-            location: {
-              key,
-              kind: location.kind,
-              name: location.name,
-              detail: location.detail,
-            },
-            outcome: "candidate_review",
-            reasons: ["policy_unreviewed"],
-            referenceAt: sample.referenceAt,
-            dueAt: null,
-          });
-          continue;
-        }
-        if (location.kind === "unmapped") {
-          items.push({
-            key,
-            sampleRecordId: sample.id,
-            location: {
-              key,
-              kind: location.kind,
-              name: location.name,
-              detail: location.detail,
-            },
-            outcome: "unknown",
-            reasons: ["unknown_coverage"],
-            referenceAt: sample.referenceAt,
-            dueAt: null,
-          });
-          continue;
-        }
-        if (!sample.referenceAt) {
-          items.push({
-            key,
-            sampleRecordId: sample.id,
-            location: {
-              key,
-              kind: location.kind,
-              name: location.name,
-              detail: location.detail,
-            },
-            outcome: "unknown",
-            reasons: ["missing_reference_time"],
-            referenceAt: null,
-            dueAt: null,
-          });
-          continue;
-        }
-        const dueAtMs =
-          Date.parse(sample.referenceAt) +
-          activePolicy.durationDays * 86_400_000;
-        items.push({
-          key,
-          sampleRecordId: sample.id,
-          location: {
-            key,
-            kind: location.kind,
-            name: location.name,
-            detail: location.detail,
-          },
-          outcome: asOfMs >= dueAtMs ? "candidate_review" : "not_due",
-          reasons: asOfMs >= dueAtMs ? ["retention_exception_review"] : [],
-          referenceAt: sample.referenceAt,
-          dueAt: new Date(dueAtMs).toISOString(),
-        });
       }
     }
 
@@ -621,21 +564,155 @@ export class RetentionService {
     };
   }
 
+  /**
+   * Determines one preview item's outcome and reason codes for a single
+   * sample-record/location pair.
+   *
+   * Hold precedence (most specific wins first, though all three report the
+   * same 'held' outcome): a hold on the exact sample record, then a hold on
+   * the exact location, then a tenant-wide activity hold.
+   *
+   * Outcome precedence once no hold applies: held > conflict > unknown >
+   * candidate_review > not_due. A sample already under a withdrawal,
+   * rights, or follow-up review is never reported simply "not due" even if
+   * its policy window has not elapsed, since that other process may change
+   * how (or whether) it should be retained.
+   */
+  private previewItem(
+    sample: PreviewSampleRecord,
+    location: PreviewLocation,
+    activePolicy: RetentionPolicyEntity | null,
+    policyConflict: boolean,
+    activeHolds: RetentionHoldEntity[],
+    asOfMs: number,
+  ): RetentionPreviewItem {
+    const key = createHash("sha256")
+      .update(`${sample.id}:${location.kind}:${location.name}`)
+      .digest("hex");
+    const locationView = {
+      key,
+      kind: location.kind,
+      name: location.name,
+      detail: location.detail,
+    };
+
+    const recordHold = activeHolds.find(
+      (h) => h.scope === "sample_record" && h.target === sample.id,
+    );
+    const locationHold = activeHolds.find(
+      (h) => h.scope === "location" && h.target === location.name,
+    );
+    const activityHold = activeHolds.find((h) => h.scope === "activity");
+    const holdMatch = recordHold ?? locationHold ?? activityHold;
+    if (holdMatch) {
+      return {
+        key,
+        sampleRecordId: sample.id,
+        location: locationView,
+        outcome: "held",
+        reasons: ["active_hold"],
+        referenceAt: sample.referenceAt,
+        dueAt: null,
+      };
+    }
+
+    const reasons = new Set<RetentionPreviewItem["reasons"][number]>();
+    if (location.kind === "unmapped") reasons.add("unknown_coverage");
+    if (!sample.referenceAt) reasons.add("missing_reference_time");
+    if (sample.withdrawn) reasons.add("withdrawal_review");
+    if (sample.rightsReview) reasons.add("rights_review");
+    if (sample.followupReview) reasons.add("followup_review");
+    if (policyConflict) reasons.add("policy_conflict");
+    else if (!activePolicy) reasons.add("policy_unreviewed");
+
+    let dueAt: string | null = null;
+    let pastDue = false;
+    if (
+      activePolicy &&
+      !policyConflict &&
+      sample.referenceAt &&
+      location.kind !== "unmapped"
+    ) {
+      const dueAtMs =
+        Date.parse(sample.referenceAt) + activePolicy.durationDays * 86_400_000;
+      dueAt = new Date(dueAtMs).toISOString();
+      pastDue = asOfMs >= dueAtMs;
+      if (pastDue) reasons.add("retention_exception_review");
+    }
+
+    let outcome: RetentionPreviewItem["outcome"];
+    if (reasons.has("policy_conflict")) outcome = "conflict";
+    else if (
+      reasons.has("unknown_coverage") ||
+      reasons.has("missing_reference_time")
+    )
+      outcome = "unknown";
+    else if (
+      reasons.has("policy_unreviewed") ||
+      reasons.has("withdrawal_review") ||
+      reasons.has("rights_review") ||
+      reasons.has("followup_review") ||
+      pastDue
+    )
+      outcome = "candidate_review";
+    else outcome = "not_due";
+
+    return {
+      key,
+      sampleRecordId: sample.id,
+      location: locationView,
+      outcome,
+      reasons: [...reasons],
+      referenceAt: sample.referenceAt,
+      dueAt,
+    };
+  }
+
+  /**
+   * Sample records for a dry run, sourced from the actual consent ledger
+   * rather than a placeholder list, and annotated with the other
+   * in-flight review signals (a later withdrawal, an open rights request,
+   * an unresolved withdrawal follow-up) that should block a clean "not due"
+   * outcome even when a sample is otherwise within policy.
+   */
   private async sampleRecordsFor(
     tenantId: string,
     entryId: string,
-  ): Promise<{ id: string; referenceAt: string | null }[]> {
+  ): Promise<PreviewSampleRecord[]> {
     const notices = await this.notices.list(tenantId);
     const noticeIds = new Set(
       notices.filter((n) => n.entryId === entryId).map((n) => n.id),
     );
+
     const receipts = await this.consent.ledger(tenantId);
-    return receipts
-      .filter(
-        (r) =>
-          noticeIds.has(r.offer.notice.id) && r.kind === "choices_recorded",
-      )
-      .map((r) => ({ id: r.id, referenceAt: r.occurredAt }));
+    const entryReceipts = receipts.filter((r) =>
+      noticeIds.has(r.offer.notice.id),
+    );
+    const withdrawnSessionIds = new Set(
+      entryReceipts
+        .filter((r) => r.kind === "choices_withdrawn")
+        .map((r) => r.sessionId),
+    );
+
+    const [openRightsReceiptIds, followupTasks] = await Promise.all([
+      this.rights.openSourceReceiptIds(tenantId),
+      this.followups.list(tenantId),
+    ]);
+    const openFollowupReceiptIds = new Set(
+      followupTasks
+        .filter((task) => task.status !== "independently_reviewed")
+        .map((task) => task.receiptId),
+    );
+
+    return entryReceipts
+      .filter((r) => r.kind === "choices_recorded")
+      .map((r) => ({
+        id: r.id,
+        referenceAt: r.occurredAt,
+        withdrawn: withdrawnSessionIds.has(r.sessionId),
+        rightsReview: openRightsReceiptIds.has(r.id),
+        followupReview: openFollowupReceiptIds.has(r.id),
+      }));
   }
 
   private async appendHistory(
