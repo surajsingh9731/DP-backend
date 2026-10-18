@@ -1,0 +1,46 @@
+{
+  "code": "employer",
+  "version": 1,
+  "label": { "en": "Employers & recruiters", "hi": "नियोक्ता और भर्तीकर्ता" },
+  "setupQuestions": [
+    {
+      "key": "collectsAadhaar",
+      "label": { "en": "Do you collect Aadhaar numbers from employees?", "hi": "क्या आप कर्मचारियों से आधार संख्या एकत्र करते हैं?" },
+      "type": "boolean"
+    },
+    {
+      "key": "retainsCandidateCvs",
+      "label": { "en": "Do you retain CVs of candidates you don't hire?", "hi": "क्या आप उन उम्मीदवारों के बायोडाटा रखते हैं जिन्हें आप नियुक्त नहीं करते?" },
+      "type": "boolean"
+    },
+    {
+      "key": "usesBackgroundChecks",
+      "label": { "en": "Do you run background verification checks?", "hi": "क्या आप पृष्ठभूमि सत्यापन जांच करते हैं?" },
+      "type": "boolean"
+    }
+  ],
+  "dataCategories": [
+    { "code": "employee_profile", "label": { "en": "Employee name, contact details, Aadhaar (masked at rest)", "hi": "कर्मचारी का नाम, संपर्क विवरण, आधार (संग्रहण में मास्क किया गया)" }, "legalBasis": "legitimate_use", "defaultRetentionDays": 2555 },
+    { "code": "payroll_records", "label": { "en": "Payroll and bank account details", "hi": "वेतन और बैंक खाता विवरण" }, "legalBasis": "legitimate_use", "defaultRetentionDays": 2555 },
+    { "code": "candidate_cv", "label": { "en": "Candidate CVs and job applications", "hi": "उम्मीदवार बायोडाटा और नौकरी आवेदन" }, "legalBasis": "consent", "defaultRetentionDays": 180 },
+    { "code": "performance_records", "label": { "en": "Performance reviews and appraisals", "hi": "प्रदर्शन समीक्षा और मूल्यांकन" }, "legalBasis": "legitimate_use", "defaultRetentionDays": 1095 },
+    { "code": "background_verification", "label": { "en": "Background verification reports", "hi": "पृष्ठभूमि सत्यापन रिपोर्ट" }, "legalBasis": "consent", "defaultRetentionDays": 365 }
+  ],
+  "noticeClauses": {
+    "en": "We collect {{categories}} to {{purposes}}. Employee data processed for employment purposes (payroll, attendance, performance) is handled as a legitimate use under the Act — this notice still applies, and Aadhaar numbers are masked wherever stored. Candidate CVs are kept only with consent and deleted once their retention period ends.",
+    "hi": "हम {{categories}} एकत्र करते हैं ताकि {{purposes}} किया जा सके। रोजगार के उद्देश्यों (वेतन, उपस्थिति, प्रदर्शन) के लिए संसाधित कर्मचारी डेटा को अधिनियम के तहत वैध उपयोग के रूप में संभाला जाता है — यह सूचना फिर भी लागू होती है, और आधार संख्याएं जहां भी संग्रहित हों, मास्क की जाती हैं। उम्मीदवार बायोडाटा केवल सहमति से रखे जाते हैं और उनकी धारण अवधि समाप्त होने पर हटा दिए जाते हैं।"
+  },
+  "exemptions": [
+    {
+      "appliesTo": "employee_profile",
+      "rule": "employment_legitimate_use",
+      "note": {
+        "en": "Processing an employee's personal data for employment purposes (payroll, attendance, performance, safeguarding) is a legitimate use under section 7 of the Act and does not require consent — a notice is still required, which this clause satisfies.",
+        "hi": "रोजगार के उद्देश्यों (वेतन, उपस्थिति, प्रदर्शन, सुरक्षा) के लिए कर्मचारी के व्यक्तिगत डेटा का प्रसंस्करण अधिनियम की धारा 7 के तहत एक वैध उपयोग है और इसके लिए सहमति आवश्यक नहीं है — फिर भी एक सूचना आवश्यक है, जिसे यह खंड पूरा करता है।"
+      }
+    }
+  ],
+  "childHarmGuard": {
+    "blockedPurposes": ["targeted_advertising", "behavioural_profiling"]
+  }
+}

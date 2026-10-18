@@ -1,0 +1,46 @@
+{
+  "code": "health",
+  "version": 1,
+  "label": { "en": "Clinics, labs & pharmacies", "hi": "क्लीनिक, लैब और फार्मेसी" },
+  "setupQuestions": [
+    {
+      "key": "sharesWithFamily",
+      "label": { "en": "Do you share reports with family members on request?", "hi": "क्या आप परिवार के सदस्यों के अनुरोध पर रिपोर्ट साझा करते हैं?" },
+      "type": "boolean"
+    },
+    {
+      "key": "sharesWithReferringDoctors",
+      "label": { "en": "Do you share reports with referring doctors?", "hi": "क्या आप रेफर करने वाले डॉक्टरों के साथ रिपोर्ट साझा करते हैं?" },
+      "type": "boolean"
+    },
+    {
+      "key": "treatsMinors",
+      "label": { "en": "Do you treat patients under 18?", "hi": "क्या आप 18 वर्ष से कम आयु के रोगियों का इलाज करते हैं?" },
+      "type": "boolean"
+    }
+  ],
+  "dataCategories": [
+    { "code": "patient_profile", "label": { "en": "Patient name, age, contact details", "hi": "रोगी का नाम, आयु, संपर्क विवरण" }, "legalBasis": "consent", "defaultRetentionDays": 2555 },
+    { "code": "medical_history", "label": { "en": "Medical history and diagnosis records", "hi": "चिकित्सा इतिहास और निदान रिकॉर्ड" }, "legalBasis": "consent", "defaultRetentionDays": 2555 },
+    { "code": "lab_reports", "label": { "en": "Lab and diagnostic reports", "hi": "लैब और नैदानिक रिपोर्ट" }, "legalBasis": "consent", "defaultRetentionDays": 1825 },
+    { "code": "prescription_records", "label": { "en": "Prescription and medication records", "hi": "नुस्खे और दवा रिकॉर्ड" }, "legalBasis": "consent", "defaultRetentionDays": 1095 },
+    { "code": "billing_details", "label": { "en": "Billing and insurance details", "hi": "बिलिंग और बीमा विवरण" }, "legalBasis": "legitimate_use", "defaultRetentionDays": 2555 }
+  ],
+  "noticeClauses": {
+    "en": "We collect {{categories}} to {{purposes}}. Health data is sensitive personal data: we keep it only as long as medically or legally necessary, share it only with the people you authorise (family, referring doctors) or as the law requires, and never use it to show targeted advertisements.",
+    "hi": "हम {{categories}} एकत्र करते हैं ताकि {{purposes}} किया जा सके। स्वास्थ्य डेटा संवेदनशील व्यक्तिगत डेटा है: हम इसे केवल चिकित्सकीय या कानूनी रूप से आवश्यक समय तक रखते हैं, इसे केवल आपके द्वारा अधिकृत लोगों (परिवार, रेफर करने वाले डॉक्टर) के साथ या कानून की आवश्यकता पर साझा करते हैं, और इसका उपयोग कभी भी लक्षित विज्ञापन दिखाने के लिए नहीं करते।"
+  },
+  "exemptions": [
+    {
+      "appliesTo": "medical_history",
+      "rule": "child_treatment_necessity",
+      "note": {
+        "en": "A child-treatment exemption permits a clinic to process a minor's health data as necessary for immediate medical care without the same verifiable-consent friction required for other processing of a child's data — this never extends to marketing or profiling.",
+        "hi": "बाल-उपचार छूट एक क्लीनिक को तत्काल चिकित्सा देखभाल के लिए आवश्यक रूप से नाबालिग के स्वास्थ्य डेटा को संसाधित करने की अनुमति देती है, बिना उस सत्यापन योग्य सहमति प्रक्रिया के जो बच्चे के डेटा के अन्य प्रसंस्करण के लिए आवश्यक है — यह कभी भी विपणन या प्रोफाइलिंग तक विस्तारित नहीं होती।"
+      }
+    }
+  ],
+  "childHarmGuard": {
+    "blockedPurposes": ["targeted_advertising", "behavioural_profiling"]
+  }
+}
