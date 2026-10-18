@@ -1,5 +1,9 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
-import type { ConsentOfferItem, ConsentReceiptView } from "@sahmati/contracts";
+import type {
+  ConsentOfferItem,
+  ConsentReceiptView,
+  ConsentStatusItem,
+} from "@sahmati/contracts";
 import { ConsentService } from "../services/consent.service";
 import { RecordChoicesDto } from "../dto/record-choices.dto";
 import { WithdrawChoicesDto } from "../dto/withdraw-choices.dto";
@@ -18,6 +22,15 @@ export class PublicConsentController {
     @Param("orgSlug") orgSlug: string,
   ): Promise<{ available: boolean; purposes: ConsentOfferItem[] }> {
     return this.consent.offerForSlug(orgSlug);
+  }
+
+  @Public()
+  @UseGuards(ParticipantSessionGuard)
+  @Get("status")
+  status(
+    @CurrentParticipant() participant: AuthenticatedParticipant,
+  ): Promise<{ available: boolean; items: ConsentStatusItem[] }> {
+    return this.consent.myStatus(participant);
   }
 
   @Public()

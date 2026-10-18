@@ -30,6 +30,9 @@ export class MembershipEntity {
   @Column({ type: "boolean", default: false })
   verified!: boolean;
 
+  @Column({ type: "int", default: 1 })
+  version!: number;
+
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
 }

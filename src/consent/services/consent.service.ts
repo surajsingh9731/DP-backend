@@ -8,6 +8,7 @@ import type {
   ConsentLedgerItemView,
   ConsentOfferItem,
   ConsentReceiptView,
+  ConsentStatusItem,
 } from "@sahmati/contracts";
 import { ConsentReceiptEntity } from "../entities/consent-receipt.entity";
 import { WithdrawalFollowupEntity } from "../entities/withdrawal-followup.entity";
@@ -89,6 +90,55 @@ export class ConsentService {
         return this.toReceiptView(receipt);
       },
     );
+  }
+
+  /**
+   * What a verified participant has actually decided so far, per published
+   * purpose — distinct from `offerForSlug`, which is anonymous and knows
+   * nothing about any one person. Matches past receipts by the same
+   * deterministic identifier mask used when they were recorded; there is
+   * no raw identifier stored anywhere to match on instead.
+   */
+  async myStatus(
+    participant: AuthenticatedParticipant,
+  ): Promise<{ available: boolean; items: ConsentStatusItem[] }> {
+    const tenantId = participant.tenantId;
+    const purposes = await this.notices.publishedPurposesForTenant(tenantId);
+    if (purposes.length === 0) return { available: false, items: [] };
+
+    const identifierMasked = this.maskIdentifier(participant.identifier);
+    const receipts = await this.tenantContext.manager
+      .getRepository(ConsentReceiptEntity)
+      .find({
+        where: { tenantId, identifierMasked },
+        order: { occurredAt: "DESC" },
+      });
+
+    const latest = new Map<string, { decision: "accept" | "decline"; occurredAt: string }>();
+    for (const receipt of receipts) {
+      for (const choice of receipt.choices) {
+        if (!latest.has(choice.registerEntryId)) {
+          latest.set(choice.registerEntryId, {
+            decision: choice.decision,
+            occurredAt: receipt.occurredAt.toISOString(),
+          });
+        }
+      }
+    }
+
+    const items: ConsentStatusItem[] = purposes.map((purpose) => {
+      const found = latest.get(purpose.registerEntryId);
+      return {
+        registerEntryId: purpose.registerEntryId,
+        purposeEn: purpose.purposeEn,
+        purposeHi: purpose.purposeHi,
+        categoryLabel: purpose.categoryLabel,
+        decision: found?.decision ?? null,
+        occurredAt: found?.occurredAt ?? null,
+      };
+    });
+
+    return { available: true, items };
   }
 
   async withdraw(

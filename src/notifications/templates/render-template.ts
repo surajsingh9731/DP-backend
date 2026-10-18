@@ -43,6 +43,19 @@ export function renderTemplate(
             body: `आपका ${kind} अनुरोध अब "${status}" स्थिति में है। पूरा जवाब देखने के लिए आपने पहले इस्तेमाल किए गए सत्यापन लिंक से साइन इन करें।`,
           };
     }
+    case "staff_invited": {
+      const organisationName = String(payload.organisationName);
+      const role = String(payload.role);
+      return en
+        ? {
+            subject: `You've been added to ${organisationName} on Sahmati`,
+            body: `${organisationName} added you as "${role}" on Sahmati. Sign in with this email or phone number to get started — no password needed, we'll send you a one-time code.`,
+          }
+        : {
+            subject: `आपको ${organisationName} में Sahmati पर जोड़ा गया है`,
+            body: `${organisationName} ने आपको "${role}" के रूप में Sahmati पर जोड़ा है। शुरू करने के लिए इस ईमेल या फ़ोन नंबर से साइन इन करें — पासवर्ड की ज़रूरत नहीं, हम आपको एक बार का कोड भेजेंगे।`,
+          };
+    }
     case "retention_overdue": {
       const purposeEn = String(payload.purposeEn);
       const dueAt = String(payload.dueAt).slice(0, 10);

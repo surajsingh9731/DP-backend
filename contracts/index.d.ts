@@ -122,6 +122,21 @@ export interface PublicNoticeView {
   bodyEn?: string;
   bodyHi?: string;
   publishedAt?: string;
+  contactName?: string | null;
+  contactRole?: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+}
+
+/** A single purpose's current state for the public "My consent" view — the
+ * offered purpose plus whatever the participant has decided about it so far. */
+export interface ConsentStatusItem {
+  registerEntryId: string;
+  purposeEn: string;
+  purposeHi: string;
+  categoryLabel: { en: string; hi: string };
+  decision: ConsentDecision | null;
+  occurredAt: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -394,4 +409,35 @@ export interface TrainingCertificateView {
   lessonCode: string;
   lessonTitle: { en: string; hi: string };
   issuedAt: string;
+}
+
+// ---------------------------------------------------------------------------
+// Staff management (R2)
+// ---------------------------------------------------------------------------
+
+export interface StaffMemberView {
+  membershipId: string;
+  userId: string;
+  displayName: string;
+  identifier: string;
+  role: MembershipRole;
+  verified: boolean;
+  version: number;
+  createdAt: string;
+  isCurrentUser: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Organisation settings (R2)
+// ---------------------------------------------------------------------------
+
+export interface OrganisationSettingsView {
+  organisationName: string;
+  organisationSlug: string;
+  contactName: string | null;
+  contactRole: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  version: number;
+  branches: { id: string; name: string; isPrimary: boolean }[];
 }

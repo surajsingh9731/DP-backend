@@ -28,6 +28,22 @@ export class OrganisationEntity {
   @Column({ type: "boolean", default: false })
   noticePublished!: boolean;
 
+  /** The DPDP-required contact person for data-principal questions — shown on every published notice and reply. Null until Settings is filled in. */
+  @Column({ type: "text", nullable: true })
+  contactName!: string | null;
+
+  @Column({ type: "text", nullable: true })
+  contactRole!: string | null;
+
+  @Column({ type: "text", nullable: true })
+  contactPhone!: string | null;
+
+  @Column({ type: "text", nullable: true })
+  contactEmail!: string | null;
+
+  @Column({ type: "int", default: 1 })
+  version!: number;
+
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
 }

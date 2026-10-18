@@ -163,6 +163,10 @@ export class NoticesService {
       bodyEn: notice.bodyEn,
       bodyHi: notice.bodyHi,
       publishedAt: notice.publishedAt?.toISOString(),
+      contactName: organisation.contactName,
+      contactRole: organisation.contactRole,
+      contactPhone: organisation.contactPhone,
+      contactEmail: organisation.contactEmail,
     };
   }
 
