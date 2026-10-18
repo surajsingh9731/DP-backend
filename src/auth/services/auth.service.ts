@@ -22,6 +22,7 @@ import { LoginDto } from "../dto/login.dto";
 import { VerifyChallengeDto } from "../dto/verify-challenge.dto";
 import { TenantContextService } from "../../common/services/tenant-context.service";
 import { AppConfigService } from "../../config/app-config.service";
+import { constantTimeHexEqual } from "../../common/security/constant-time-equal";
 import { SectorPackRegistryService } from "../../sector-packs/services/sector-pack-registry.service";
 import { NotificationsService } from "../../notifications/services/notifications.service";
 
@@ -177,7 +178,7 @@ export class AuthService {
     }
 
     const codeHash = this.hashCode(dto.code, challenge.id);
-    if (codeHash !== challenge.codeHash) {
+    if (!constantTimeHexEqual(codeHash, challenge.codeHash)) {
       challenge.attempts += 1;
       await challenges.save(challenge);
       throw new UnauthorizedException("Incorrect code.");

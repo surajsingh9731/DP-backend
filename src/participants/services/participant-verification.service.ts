@@ -17,6 +17,7 @@ import { ConfirmVerificationDto } from "../dto/confirm-verification.dto";
 import { TenantContextService } from "../../common/services/tenant-context.service";
 import { AppConfigService } from "../../config/app-config.service";
 import { NotificationsService } from "../../notifications/services/notifications.service";
+import { constantTimeHexEqual } from "../../common/security/constant-time-equal";
 
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
 const SESSION_TTL_MS = 15 * 60 * 1000;
@@ -103,7 +104,7 @@ export class ParticipantVerificationService {
     }
 
     const codeHash = this.hashCode(dto.code, row.id);
-    if (codeHash !== row.codeHash) {
+    if (!constantTimeHexEqual(codeHash, row.codeHash)) {
       row.attempts += 1;
       await repo.save(row);
       throw new UnauthorizedException("Incorrect code.");
