@@ -20,6 +20,12 @@ export interface SessionView {
   displayName: string;
 }
 
+/** Public (pre-signup) sector pack listing — see sector-packs.controller.ts. */
+export interface SectorPackSummary {
+  code: string;
+  label: { en: string; hi: string };
+}
+
 export interface ApiErrorBody {
   message: string | string[];
   statusCode?: number;
