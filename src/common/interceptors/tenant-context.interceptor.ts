@@ -40,16 +40,22 @@ export class TenantContextInterceptor implements NestInterceptor {
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const req = context
-      .switchToHttp()
-      .getRequest<
-        Request & { tenantId?: string; participantSessionId?: string }
-      >();
+    const req = context.switchToHttp().getRequest<
+      Request & {
+        tenantId?: string;
+        participantSessionId?: string;
+        authSession?: { userId: string };
+      }
+    >();
     return from(this.run(req, next));
   }
 
   private async run(
-    req: Request & { tenantId?: string; participantSessionId?: string },
+    req: Request & {
+      tenantId?: string;
+      participantSessionId?: string;
+      authSession?: { userId: string };
+    },
     next: CallHandler,
   ): Promise<unknown> {
     const queryRunner = this.dataSource.createQueryRunner();
@@ -58,9 +64,16 @@ export class TenantContextInterceptor implements NestInterceptor {
     try {
       const tenantId = req.tenantId ?? null;
       const participantSessionId = req.participantSessionId ?? null;
+      // The authenticated staff user's own id — lets a small set of tables
+      // (e.g. a partner's own cross-tenant membership listing) carve out a
+      // "my own rows regardless of tenant" RLS policy, the same shape as
+      // participantOwnRowSql below but for staff identities. See
+      // enable-rls.ts `ownUserRowSql`.
+      const userId = req.authSession?.userId ?? null;
       for (const [label, value] of [
         ["tenant id", tenantId],
         ["participant session id", participantSessionId],
+        ["user id", userId],
       ] as const) {
         if (value !== null && !UUID_RE.test(value)) {
           throw new Error(
@@ -76,6 +89,7 @@ export class TenantContextInterceptor implements NestInterceptor {
       await queryRunner.query(
         `SET LOCAL app.participant_session_id = '${participantSessionId ?? ""}'`,
       );
+      await queryRunner.query(`SET LOCAL app.user_id = '${userId ?? ""}'`);
       const result = await this.tenantContext.run(
         { manager: queryRunner.manager, tenantId },
         () => lastValueFrom(next.handle(), { defaultValue: undefined }),

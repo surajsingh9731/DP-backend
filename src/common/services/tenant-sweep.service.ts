@@ -20,14 +20,25 @@ export class TenantSweepService {
     private readonly tenantContext: TenantContextService,
   ) {}
 
+  /**
+   * Sweeps every tenant by default, or — for a caller that already knows
+   * which tenants it's entitled to touch (e.g. the partner portal's own
+   * cross-tenant membership rows) — just the given `tenantIds`. Passing an
+   * explicit list never widens access beyond what the caller already
+   * proved it may see; it only narrows which of the normal full sweep's
+   * tenants get visited.
+   */
   async forEachTenant<T>(
     handler: (tenantId: string) => Promise<T>,
+    tenantIds?: string[],
   ): Promise<T[]> {
-    const tenants: { id: string }[] = await this.dataSource.query(
-      `SELECT id FROM organisations`,
-    );
+    const ids =
+      tenantIds ??
+      (await this.dataSource.query(`SELECT id FROM organisations`)).map(
+        (row: { id: string }) => row.id,
+      );
     const results: T[] = [];
-    for (const { id: tenantId } of tenants) {
+    for (const tenantId of ids) {
       results.push(await this.runInTenantTransaction(tenantId, handler));
     }
     return results;
@@ -48,6 +59,7 @@ export class TenantSweepService {
     try {
       await queryRunner.query(`SET LOCAL app.tenant_id = '${tenantId}'`);
       await queryRunner.query(`SET LOCAL app.participant_session_id = ''`);
+      await queryRunner.query(`SET LOCAL app.user_id = ''`);
       const result = await this.tenantContext.run(
         { manager: queryRunner.manager, tenantId },
         () => handler(tenantId),

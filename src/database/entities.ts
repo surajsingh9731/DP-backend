@@ -22,6 +22,9 @@ import { RetentionAlertEntity } from "../retention/entities/retention-alert.enti
 import { MessageOutboxEntity } from "../messaging/entities/message-outbox.entity";
 import { VendorEntity } from "../vendors/entities/vendor.entity";
 import { VendorDeletionInstructionEntity } from "../vendors/entities/vendor-deletion-instruction.entity";
+import { PartnerProfileEntity } from "../partner/entities/partner-profile.entity";
+import { CommissionRecordEntity } from "../partner/entities/commission-record.entity";
+import { TrainingProgressEntity } from "../training/entities/training-progress.entity";
 
 /**
  * Every TypeORM entity in the app, explicitly. Deliberately not a glob
@@ -60,4 +63,7 @@ export const ALL_ENTITIES = [
   MessageOutboxEntity,
   VendorEntity,
   VendorDeletionInstructionEntity,
+  PartnerProfileEntity,
+  CommissionRecordEntity,
+  TrainingProgressEntity,
 ];

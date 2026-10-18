@@ -7,5 +7,6 @@ import { RetentionModule } from "../retention/retention.module";
   imports: [RetentionModule],
   controllers: [DashboardController],
   providers: [DashboardService],
+  exports: [DashboardService],
 })
 export class DashboardModule {}

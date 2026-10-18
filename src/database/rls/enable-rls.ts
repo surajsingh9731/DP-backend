@@ -137,3 +137,43 @@ export function participantOwnRowSql(
     `CREATE POLICY ${table}_participant_own ON ${table} FOR SELECT USING (${predicate})`,
   ];
 }
+
+/**
+ * For a strictly tenant-owned table (`memberships`) that a *staff* user
+ * must also be able to read their own rows from across every tenant they
+ * belong to — the partner portal's "my organisations" listing. Mirrors
+ * `participantOwnRowSql`'s shape exactly, but keyed by the authenticated
+ * staff identity (`app.user_id`, set by TenantContextInterceptor from
+ * SessionGuard's resolved session) rather than a participant's
+ * verification session. SELECT-only and additive: the table's own strict
+ * `tenant_isolation` policy still governs every write and every read made
+ * with a specific tenant in context, so this carve-out can only ever
+ * widen *which rows a user can see are theirs*, never what they can do
+ * with another tenant's data.
+ */
+export function ownUserRowSql(table: string, column = "user_id"): string[] {
+  const predicate = `${column} = NULLIF(current_setting('app.user_id', true), '')::uuid`;
+  return [
+    `CREATE POLICY ${table}_own_user_row ON ${table} FOR SELECT USING (${predicate})`,
+  ];
+}
+
+/**
+ * For a table that belongs to one staff *identity*, not to any tenant —
+ * a partner's own white-label branding profile, their own commission
+ * ledger. These carry no `tenant_id` at all, so the normal
+ * `tenantIsolationSql` doesn't apply; every operation (not just SELECT)
+ * is instead scoped to the row's own `user_id` matching the authenticated
+ * session's `app.user_id`. RLS is still the enforcement boundary — a
+ * partner can never see or touch another partner's branding or
+ * commission rows, the same guarantee tenant_isolation gives every other
+ * table, just keyed by person instead of organisation.
+ */
+export function userOwnedTableSql(table: string, column = "user_id"): string[] {
+  const predicate = `${column} = NULLIF(current_setting('app.user_id', true), '')::uuid`;
+  return [
+    `ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY`,
+    `ALTER TABLE ${table} FORCE ROW LEVEL SECURITY`,
+    `CREATE POLICY own_user_row ON ${table} USING (${predicate}) WITH CHECK (${predicate})`,
+  ];
+}

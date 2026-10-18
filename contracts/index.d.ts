@@ -316,3 +316,76 @@ export interface VendorDeletionInstructionView {
   createdAt: string;
   updatedAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Module O — partner portal (R2)
+// ---------------------------------------------------------------------------
+
+export interface PartnerOrganisationView {
+  organisationId: string;
+  organisationName: string;
+  organisationSlug: string;
+  role: MembershipRole;
+  readiness: DashboardCheckView[];
+}
+
+export interface PartnerProfileView {
+  brandName: string;
+  logoRef: string | null;
+  contactEmail: string;
+  version: number;
+}
+
+export type CommissionStatus = "pending" | "confirmed" | "paid";
+
+export interface CommissionRecordView {
+  id: string;
+  organisationId: string;
+  organisationName: string;
+  amountInr: string;
+  note: string | null;
+  status: CommissionStatus;
+  createdAt: string;
+}
+
+// ---------------------------------------------------------------------------
+// Module P — staff training (R2)
+// ---------------------------------------------------------------------------
+
+export type TrainingProgressStatus =
+  "not_started" | "in_progress" | "completed";
+
+export interface TrainingLessonSummary {
+  code: string;
+  title: { en: string; hi: string };
+  summary: { en: string; hi: string };
+  status: TrainingProgressStatus;
+  quizScore: number | null;
+  certificateId: string | null;
+}
+
+export interface TrainingQuizQuestionView {
+  id: string;
+  prompt: { en: string; hi: string };
+  options: { en: string; hi: string }[];
+}
+
+export interface TrainingLessonDetailView {
+  code: string;
+  title: { en: string; hi: string };
+  content: { en: string; hi: string };
+  quiz: TrainingQuizQuestionView[];
+}
+
+export interface TrainingQuizResultView {
+  passed: boolean;
+  score: number;
+  certificateId: string | null;
+}
+
+export interface TrainingCertificateView {
+  certificateId: string;
+  lessonCode: string;
+  lessonTitle: { en: string; hi: string };
+  issuedAt: string;
+}

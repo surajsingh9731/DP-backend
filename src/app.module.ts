@@ -15,6 +15,8 @@ import { RetentionModule } from "./retention/retention.module";
 import { MessagingModule } from "./messaging/messaging.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { VendorsModule } from "./vendors/vendors.module";
+import { PartnerModule } from "./partner/partner.module";
+import { TrainingModule } from "./training/training.module";
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { VendorsModule } from "./vendors/vendors.module";
     MessagingModule,
     DashboardModule,
     VendorsModule,
+    PartnerModule,
+    TrainingModule,
   ],
 })
 export class AppModule {}
